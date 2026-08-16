@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff login - Reservation System</title>
+  <link rel="stylesheet" href="/public/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">Reservation System</a>
+    <nav>
+      <a href="/reserve">Book a table</a>
+    </nav>
+  </header>
+  <main>
+    <div class="card" style="max-width: 420px; margin: 0 auto;">
+      <h1>Staff login</h1>
+      <div class="tabs">
+        <button type="button" id="tab-password" class="active">E-mail + password</button>
+        <button type="button" id="tab-pin">PIN</button>
+      </div>
+
+      <form id="password-form">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" required />
+        <label for="password">Password</label>
+        <input type="password" id="password" required />
+        <div class="actions">
+          <button type="submit">Log in</button>
+        </div>
+      </form>
+
+      <form id="pin-form" hidden>
+        <label for="pin">PIN</label>
+        <input type="password" id="pin" inputmode="numeric" required />
+        <div class="actions">
+          <button type="submit">Log in</button>
+        </div>
+      </form>
+
+      <p class="muted"><a href="#" id="forgot-link">Forgot password?</a></p>
+      <form id="forgot-form" hidden>
+        <label for="forgot-email">E-mail</label>
+        <input type="email" id="forgot-email" required />
+        <div class="actions">
+          <button type="submit" class="secondary">Send reset instructions</button>
+        </div>
+      </form>
+
+      <p id="message" class="message" hidden></p>
+    </div>
+  </main>
+  <script src="/public/js/api.js"></script>
+  <script src="/public/js/staff-login.js"></script>
+</body>
+</html>

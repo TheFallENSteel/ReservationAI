@@ -1,0 +1,51 @@
+ENDPOINTS
+-User Endpoints
+   PATCH, DELETE           api/user/reserve/{resource_id}/{reservation_id}
+   POST                    api/user/reserve/{resource_id}
+
+   GET                     api/user/reservation/resources
+   GET                     api/user/reservation/{resource_id}/{reservation_id}
+   GET                     api/user/settings
+
+-Staff Endpoints
+#User Management
+   POST                    api/staff/register
+   POST                    api/staff/login
+   POST                    api/staff/logout
+   POST                    api/staff/password/forgot
+   POST                    api/staff/password/reset
+   GET, PATCH              api/staff/me
+
+#Reservation Management
+   POST                    api/staff/reservation
+   GET, PATCH, DELETE      api/staff/reservation/{reservation_id}
+   PATCH                   api/staff/reservation/{reservation_id}/status
+   GET                     api/staff/reservation
+   GET                     api/staff/reservation/timeline
+
+#Resource Management 
+   GET, POST               api/staff/table-blocks
+   DELETE                  api/staff/table-blocks/{block_id}
+   POST                    api/staff/reservation/merge
+   POST                    api/staff/reservation/split
+   GET                     api/staff/resources/overview
+
+-Admin Endpoints   
+#User Management
+   POST, GET               api/admin/user
+   PATCH, DELETE           api/admin/user/{user_id}
+   PATCH                   api/admin/user/{user_id}/role
+
+#Resource Management  
+   POST, GET, DELETE       api/admin/resource
+   PATCH                   api/admin/resource/{resource_id}
+   POST, GET, DELETE       api/admin/resource/zone
+   PATCH                   api/admin/resource/zone/{zone_id}
+
+#Settings Endpoints
+   PATCH                   api/admin/settings/{setting_name}
+   GET                     api/admin/settings
+
+#Audit & Analytics
+   GET                     api/admin/logs
+   GET                     api/admin/stats/reservations

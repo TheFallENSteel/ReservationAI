@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book a table - Reservation System</title>
+  <link rel="stylesheet" href="/public/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">Reservation System</a>
+    <nav>
+      <a href="/reserve/manage">Manage my reservation</a>
+      <a href="/staff/login">Staff login</a>
+    </nav>
+  </header>
+  <main>
+    <div class="card">
+      <h1>Book a table</h1>
+      <form id="reserve-form">
+        <div class="field-row">
+          <div>
+            <label for="date">Date</label>
+            <input type="date" id="date" required />
+          </div>
+          <div>
+            <label for="startTime">Start time</label>
+            <input type="time" id="startTime" required />
+          </div>
+          <div>
+            <label for="endTime">End time</label>
+            <input type="time" id="endTime" required />
+          </div>
+          <div>
+            <label for="guestCount">Guests</label>
+            <input type="number" id="guestCount" min="1" value="2" required />
+          </div>
+        </div>
+
+        <label for="resourceId">Table / zone</label>
+        <select id="resourceId" required></select>
+
+        <div class="field-row">
+          <div>
+            <label for="guestName">Full name</label>
+            <input type="text" id="guestName" required />
+          </div>
+          <div>
+            <label for="email">E-mail</label>
+            <input type="email" id="email" required />
+          </div>
+          <div>
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" />
+          </div>
+        </div>
+
+        <label for="notes">Notes</label>
+        <textarea id="notes" rows="2"></textarea>
+
+        <div class="actions">
+          <button type="submit">Request reservation</button>
+        </div>
+      </form>
+      <p id="message" class="message" hidden></p>
+    </div>
+
+    <div class="card" id="confirmation" hidden>
+      <h2>Reservation requested</h2>
+      <p>Save these details to manage your reservation later:</p>
+      <p><strong>Reservation ID:</strong> <span id="confirm-reservation-id"></span></p>
+      <p><strong>Table ID:</strong> <span id="confirm-resource-id"></span></p>
+      <a class="button" id="manage-link" href="/reserve/manage">Manage this reservation</a>
+    </div>
+  </main>
+  <script src="/public/js/api.js"></script>
+  <script src="/public/js/reserve.js"></script>
+</body>
+</html>

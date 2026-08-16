@@ -1,0 +1,56 @@
+FRONTEND SPECIFICATION
+-User Views
+   /reserve                                Stepper: Krok 1 (Datum, čas, hosté, alternativní sloty)
+                                           Stepper: Krok 2 (Výběr zóny / stolu, preference)
+                                           Stepper: Krok 3 (Jméno, e-mail, telefon, poznámka)
+                                           Stepper: Krok 4 (Zadání ověřovacího kódu z e-mailu)
+   /reserve/verify                         Obrazovka pro přímé ověření přes token z e-mailového odkazu
+   /reserve/manage/{reservation_id}        Přehled rezervace hosta, dialog pro úpravu času/stolu, storno
+
+-Staff & Admin Views
+#Authentication
+   /staff/login                            Přepínač: E-mail + heslo (manažer/admin) vs. PIN pad (obsluha)[cite: 1]
+   /staff/forgot-password                  Formulář pro odeslání odkazu na obnovu hesla[cite: 1]
+
+#Dashboard
+   /staff/dashboard                        Widget: Aktuální obsazenost podniku v reálném čase
+                                           Widget: Náhled do rozvrhu (s proklikem na plný rozvrh)
+                                           Widget: Předpověď obsazenosti na X následujících dní (% z kapacity)
+                                           Widget: TOP 3 nejčastější počet osob v rezervaci
+                                           Widget: Graf návštěvnosti za posledních 7 dní
+
+#Rozvrh (Schedule)
+   /staff/schedule                         Tabulkový layout: řádky = stoly, sloupce = časové sloty
+                                           Navigace: Datepicker + posun šipkami (den dopředu/dozadu)
+                                           Filtry: podle počtu osob stolu, podle specifického dělení (skupin/zón)
+                                           Indikátor: Červená vertikální linka znázorňující aktuální reálný čas
+                                           Interakce: Klik na časový blok -> modální okno pro rychlé přidání rezervace
+                                           Interakce: Drag & drop přesun a změna délky rezervace, možnost odstranění[cite: 1]
+                                           Hover bublina: Rychlý náhled (Jméno, telefon, počet osob, poznámka, štítek)[cite: 1]
+                                           Sekce spojených stolů: Vyjmuté stoly zobrazené ve vyhrazeném bloku pod tabulkou[cite: 1]
+
+#Přehled rezervací (Aktivní)
+   /staff/reservations                     Tabulka: Datum, Čas, Jméno a Příjmení, E-mail, Telefon, Stůl, Počet osob[cite: 1]
+                                           Akce: Přidat, upravit, zrušit, dialog pro spojení stolů[cite: 1]
+                                           Filtry: Fulltext vyhledávání, výběr data, řazení (nejnovější/nejstarší)[cite: 1]
+                                           Filtry: Výběr podle stolů, skupin stolů a kapacity
+
+#Archiv rezervací (Historie)
+   /staff/archive                          Výpis proběhlých rezervací (po uplynutí času), zrušených a no-show[cite: 1]
+                                           Sloupce: Datum, Čas, Jméno a Příjmení, E-mail, Telefon, Stůl, Počet osob[cite: 1]
+                                           Filtry: Obecné hledání, hledání podle data, filtrace podle tel. + e-mailu[cite: 1]
+                                           Filtry: Řazení podle data, filtrování podle stolů, skupin a kapacity[cite: 1]
+
+#Správa stolů (Resources)
+   /admin/resources                        Seznam stolů s ID, názvem/číslem, kapacitou (min/max), skupinou/zónou
+                                           Filtry stolů: Podle kapacity, stavu (volný/obsazený), specifických požadavků
+                                           Akce: Přidat stůl, upravit parametry, přepínač aktivace/deaktivace, smazat
+
+#Nastavení (Settings)
+   /admin/settings                         Otevírací doba (standardní týdenní plán)[cite: 1]
+                                           Nastavení délky rezervačních slotů (krok např. 15/30 min)
+                                           Minimální a maximální doba trvání rezervace
+                                           Minimální čas předem nutný pro vytvoření rezervace
+                                           Doba uchování archivu (retence pro GDPR anonymizaci)[cite: 1]
+                                           Konfigurace Dashboardu: délka náhledu do rozvrhu a počet dní předpovědi
+                                           Kalendář specifické otevírací doby (výjimky, svátky, sanitární dny)[cite: 1]

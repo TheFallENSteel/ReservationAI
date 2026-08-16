@@ -1,0 +1,66 @@
+Dashboard
+•	Aktuální obsazenost
+•	Náhled do rozvrhu – proklik na celý rozvrh
+•	Obsazenost na následující dny z celkové kapacity
+•	Nejčastější počet osob v rezervaci (top 3)
+•	Návštěvnost za posledních 7 dní
+ 
+Rozvrh
+•	Tabulkový styl, ve sloupcích je čas, v řádcích jsou stoly
+•	Výběr datumu, možnost posouvat šipkama
+•	Výběr stolů
+o	Podle počtu osob
+o	Podle specifického dělení v restauraci
+•	Indikátor aktuálního času (červená čárka)
+•	Možnost přidat rezervaci podle časových bloků  vyskočí jednoduchá tabulka na doplnění nutných údajů pro rezervaci
+•	Možnost odstranit rezervaci
+•	Možnost přesouvat rezervace
+•	Rychlý detail (Hover): Po najetí myší na blok rezervace v rozvrhu by měla vyskočit "bublina" s detaily (jméno, poznámka, telefon), aby obsluha nemusela klikat do detailu.
+•	Možnost spojování stolů pro rezervaci – pak jsou stoly v rozvrhu vyjmuty z běžné tabulky a jsou speciálně pod celým rozvrhem pro časový interval speciální rezeravce
+
+ 
+Přehled rezervací
+•	Přehled aktivních rezervací
+•	Lze vidět datum, čas, J+P, email, telefon, stůl, počet lidí
+•	Možnost přidat rezervaci
+•	Možnost upravit rezervaci
+•	Možnost zrušit rezervaci
+•	Možnost spojení stolů pro specifický počet lidí na rezervaci
+•	Filtr
+o	Vyhledávání obecně
+o	Vyhledávání podle specifického datumu
+o	Seřazení podle datumu (nejnovější, nejstarší)
+o	Vyhledání podle stolů a jejich skupin a kapacity
+
+ 
+Správa stolů
+•	Přidávání stolů
+•	Každý stůl musí mít svoje ID
+•	Filtry
+o	Kapacita
+o	Specifické požadavky restaurace
+o	Stav (volný, obsazený,…)
+•	Upravit stůl (název, kapacita, skupina, atd)
+•	Aktivace/deaktivace stolu
+•	Odstranit stůl
+ 
+Archiv
+•	Výpis již proběhlých rezervací – rezervace je sem přiřazena po uplynutí celé doby rezervace
+•	Lze vidět datum, čas, J+P, email, telefon, stůl, počet lidí
+•	Filtr
+o	Vyhledávání obecně
+o	Vyhledávání podle specifického datumu
+o	Seřazení podle datumu (nejnovější, nejstarší)
+o	Telefon + email.
+o	Vyhledání podle stolů a jejich skupin a kapacity
+ 
+Nastavení
+•	Otevírací doba
+•	Rezervační sloty pro stoly (po kolika minutách jsou bloky)
+•	Minimální doba rezervace
+•	Maximální doba rezervace
+•	Minimální čas před rezervací
+•	Doba uchování archivu
+•	Délka náhledu do rozvrhu z dashboardu
+•	Počet následujících dní s přehledem obsazenosti
+•	Specifická otevírací doba pro vybrané dny (svátky, atd)

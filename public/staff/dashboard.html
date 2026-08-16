@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff dashboard - Reservation System</title>
+  <link rel="stylesheet" href="/public/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">Reservation System</a>
+    <nav>
+      <span id="welcome" class="muted"></span>
+      <a href="#" id="logout-link">Log out</a>
+    </nav>
+  </header>
+  <main>
+    <p id="message" class="message" hidden></p>
+
+    <div class="card">
+      <h2>New reservation</h2>
+      <form id="new-reservation-form">
+        <div class="field-row">
+          <div>
+            <label for="resourceId">Table</label>
+            <select id="resourceId" required></select>
+          </div>
+          <div>
+            <label for="date">Date</label>
+            <input type="date" id="date" required />
+          </div>
+          <div>
+            <label for="startTime">Start</label>
+            <input type="time" id="startTime" required />
+          </div>
+          <div>
+            <label for="endTime">End</label>
+            <input type="time" id="endTime" required />
+          </div>
+          <div>
+            <label for="guestCount">Guests</label>
+            <input type="number" id="guestCount" min="1" value="2" required />
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="guestName">Guest name</label>
+            <input type="text" id="guestName" required />
+          </div>
+          <div>
+            <label for="email">E-mail</label>
+            <input type="email" id="email" />
+          </div>
+          <div>
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" />
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit">Add reservation</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Reservations</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Time</th><th>Table</th><th>Guest</th><th>Guests</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="reservations-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Resources overview</h2>
+      <table>
+        <thead>
+          <tr><th>Table</th><th>Zone</th><th>Capacity</th><th>Status</th></tr>
+        </thead>
+        <tbody id="resources-body"></tbody>
+      </table>
+    </div>
+
+    <section id="admin-section" hidden>
+      <div class="card">
+        <h2>Admin</h2>
+        <div class="tabs">
+          <button type="button" class="admin-tab active" data-tab="users">Users</button>
+          <button type="button" class="admin-tab" data-tab="zones">Zones</button>
+          <button type="button" class="admin-tab" data-tab="settings">Settings</button>
+          <button type="button" class="admin-tab" data-tab="logs">Logs</button>
+          <button type="button" class="admin-tab" data-tab="stats">Stats</button>
+        </div>
+
+        <div id="admin-users" class="admin-panel">
+          <form id="new-user-form" class="field-row">
+            <div>
+              <label for="user-name">Name</label>
+              <input type="text" id="user-name" required />
+            </div>
+            <div>
+              <label for="user-email">E-mail</label>
+              <input type="email" id="user-email" required />
+            </div>
+            <div>
+              <label for="user-password">Password</label>
+              <input type="password" id="user-password" required />
+            </div>
+            <div>
+              <label for="user-role">Role</label>
+              <select id="user-role">
+                <option value="staff">staff</option>
+                <option value="manager">manager</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+            <div style="align-self:end">
+              <button type="submit">Add user</button>
+            </div>
+          </form>
+          <table>
+            <thead><tr><th>Name</th><th>E-mail</th><th>Role</th><th></th></tr></thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+
+        <div id="admin-zones" class="admin-panel" hidden>
+          <form id="new-zone-form" class="field-row">
+            <div>
+              <label for="zone-name">Zone name</label>
+              <input type="text" id="zone-name" required />
+            </div>
+            <div style="align-self:end">
+              <button type="submit">Add zone</button>
+            </div>
+          </form>
+          <table>
+            <thead><tr><th>Zone</th><th></th></tr></thead>
+            <tbody id="zones-body"></tbody>
+          </table>
+        </div>
+
+        <div id="admin-settings" class="admin-panel" hidden>
+          <div id="settings-body"></div>
+        </div>
+
+        <div id="admin-logs" class="admin-panel" hidden>
+          <table>
+            <thead><tr><th>Timestamp</th><th>Action</th><th>Actor</th></tr></thead>
+            <tbody id="logs-body"></tbody>
+          </table>
+        </div>
+
+        <div id="admin-stats" class="admin-panel" hidden>
+          <div id="stats-body" class="section-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="/public/js/api.js"></script>
+  <script src="/public/js/staff-dashboard.js"></script>
+</body>
+</html>
