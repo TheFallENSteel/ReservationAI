@@ -833,4 +833,5 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ ok: false, message: 'Internal server error' });
 });
 
+export default app;
 export { app };

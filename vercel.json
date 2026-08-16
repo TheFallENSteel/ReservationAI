@@ -2,10 +2,10 @@
   "rewrites": [
     { "source": "/health", "destination": "/api/index" },
     { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/", "destination": "/public/index.html" },
-    { "source": "/reserve", "destination": "/public/reserve.html" },
-    { "source": "/reserve/manage", "destination": "/public/reserve-manage.html" },
-    { "source": "/staff/login", "destination": "/public/staff/login.html" },
-    { "source": "/staff/dashboard", "destination": "/public/staff/dashboard.html" }
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/reserve", "destination": "/reserve.html" },
+    { "source": "/reserve/manage", "destination": "/reserve-manage.html" },
+    { "source": "/staff/login", "destination": "/staff/login.html" },
+    { "source": "/staff/dashboard", "destination": "/staff/dashboard.html" }
   ]
 }
