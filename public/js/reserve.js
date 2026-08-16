@@ -7,7 +7,7 @@ async function loadResources() {
   try {
     const { resources } = await apiRequest('/api/user/reservation/resources');
     resourceSelect.innerHTML = resources
-      .map((resource) => `<option value="${resource.id}">${resource.name} - ${resource.zone} (up to ${resource.maxGuests} guests)</option>`)
+      .map((resource) => `<option value="${escapeHtml(resource.id)}">${escapeHtml(resource.name)} - ${escapeHtml(resource.zone)} (up to ${escapeHtml(String(resource.maxGuests))} guests)</option>`)
       .join('');
   } catch (error) {
     showMessage(messageEl, `Could not load tables: ${error.message}`, 'error');

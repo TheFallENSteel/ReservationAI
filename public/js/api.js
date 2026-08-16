@@ -2,6 +2,17 @@
 const STAFF_TOKEN_KEY = 'reservation.staffToken';
 const STAFF_USER_KEY = 'reservation.staffUser';
 
+// Always escape untrusted text before inserting into innerHTML to avoid stored XSS.
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
 async function apiRequest(path, { method = 'GET', body, auth = false } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (auth) {

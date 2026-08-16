@@ -24,12 +24,24 @@ type ReservationRow = {
   email: string;
   phone: string;
   guest_count: number;
-  date: string;
+  date: string | Date;
   start_time: string;
   end_time: string;
   status: Reservation['status'];
   notes: string | null;
   block_id: string | null;
+};
+
+// The Neon driver returns SQL DATE columns as JS Date objects; normalize to a
+// plain YYYY-MM-DD string using local date parts (matches how the date was inserted).
+export const toDateOnlyString = (value: string | Date): string => {
+  if (value instanceof Date) {
+    const y = value.getFullYear();
+    const m = String(value.getMonth() + 1).padStart(2, '0');
+    const d = String(value.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return String(value).slice(0, 10);
 };
 
 const toResource = (row: ResourceRow): TableResource => ({
@@ -49,7 +61,7 @@ const toReservation = (row: ReservationRow): Reservation => ({
   email: row.email,
   phone: row.phone,
   guestCount: row.guest_count,
-  date: row.date,
+  date: toDateOnlyString(row.date),
   startTime: row.start_time,
   endTime: row.end_time,
   status: row.status,

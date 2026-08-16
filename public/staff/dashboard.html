@@ -1,166 +1,360 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Staff dashboard - Reservation System</title>
   <link rel="stylesheet" href="/public/css/styles.css" />
+  <link rel="stylesheet" href="/public/css/dashboard.css" />
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="/">Reservation System</a>
-    <nav>
-      <span id="welcome" class="muted"></span>
-      <a href="#" id="logout-link">Log out</a>
-    </nav>
-  </header>
-  <main>
-    <p id="message" class="message" hidden></p>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/">Reservation System</a>
 
-    <div class="card">
-      <h2>New reservation</h2>
-      <form id="new-reservation-form">
-        <div class="field-row">
-          <div>
-            <label for="resourceId">Table</label>
-            <select id="resourceId" required></select>
-          </div>
-          <div>
-            <label for="date">Date</label>
-            <input type="date" id="date" required />
-          </div>
-          <div>
-            <label for="startTime">Start</label>
-            <input type="time" id="startTime" required />
-          </div>
-          <div>
-            <label for="endTime">End</label>
-            <input type="time" id="endTime" required />
-          </div>
-          <div>
-            <label for="guestCount">Guests</label>
-            <input type="number" id="guestCount" min="1" value="2" required />
-          </div>
-        </div>
-        <div class="field-row">
-          <div>
-            <label for="guestName">Guest name</label>
-            <input type="text" id="guestName" required />
-          </div>
-          <div>
-            <label for="email">E-mail</label>
-            <input type="email" id="email" />
-          </div>
-          <div>
-            <label for="phone">Phone</label>
-            <input type="tel" id="phone" />
-          </div>
-        </div>
-        <div class="actions">
-          <button type="submit">Add reservation</button>
-        </div>
-      </form>
-    </div>
+      <button type="button" class="nav-item active" data-view="dashboard">📊 Dashboard</button>
+      <button type="button" class="nav-item" data-view="schedule">🗓️ Rozvrh</button>
+      <button type="button" class="nav-item" data-view="reservations">📋 Přehled rezervací</button>
+      <button type="button" class="nav-item" data-view="archive">🗃️ Archiv</button>
 
-    <div class="card">
-      <h2>Reservations</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th><th>Time</th><th>Table</th><th>Guest</th><th>Guests</th><th>Status</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="reservations-body"></tbody>
-      </table>
-    </div>
+      <div id="admin-nav-group" hidden>
+        <div class="sidebar-group-label">Administrace</div>
+        <button type="button" class="nav-item" data-view="tables">🍽️ Správa stolů</button>
+        <button type="button" class="nav-item" data-view="users">👤 Uživatelé</button>
+        <button type="button" class="nav-item" data-view="settings">⚙️ Nastavení</button>
+        <button type="button" class="nav-item" data-view="logs">📝 Protokoly</button>
+      </div>
+    </aside>
 
-    <div class="card">
-      <h2>Resources overview</h2>
-      <table>
-        <thead>
-          <tr><th>Table</th><th>Zone</th><th>Capacity</th><th>Status</th></tr>
-        </thead>
-        <tbody id="resources-body"></tbody>
-      </table>
-    </div>
+    <div class="app-main">
+      <header class="app-topbar">
+        <h1 id="view-title">Dashboard</h1>
+        <nav>
+          <span id="welcome" class="muted"></span>
+          <a href="#" id="logout-link" class="logout-button">⏻ Odhlásit se</a>
+        </nav>
+      </header>
 
-    <section id="admin-section" hidden>
-      <div class="card">
-        <h2>Admin</h2>
-        <div class="tabs">
-          <button type="button" class="admin-tab active" data-tab="users">Users</button>
-          <button type="button" class="admin-tab" data-tab="zones">Zones</button>
-          <button type="button" class="admin-tab" data-tab="settings">Settings</button>
-          <button type="button" class="admin-tab" data-tab="logs">Logs</button>
-          <button type="button" class="admin-tab" data-tab="stats">Stats</button>
-        </div>
+      <main class="app-content">
+        <p id="message" class="message" hidden></p>
 
-        <div id="admin-users" class="admin-panel">
-          <form id="new-user-form" class="field-row">
-            <div>
-              <label for="user-name">Name</label>
-              <input type="text" id="user-name" required />
+        <!-- Dashboard -->
+        <section id="view-dashboard" class="view active">
+          <div class="section-grid">
+            <div class="stat-card">
+              <div class="stat-label">Aktuální obsazenost</div>
+              <div class="stat-value" id="stat-occupancy-value">–</div>
+              <div id="stat-occupancy-bar"></div>
             </div>
-            <div>
-              <label for="user-email">E-mail</label>
-              <input type="email" id="user-email" required />
+            <div class="stat-card">
+              <div class="stat-label">Rezervace dnes</div>
+              <div class="stat-value" id="stat-today-count">–</div>
             </div>
-            <div>
-              <label for="user-password">Password</label>
-              <input type="password" id="user-password" required />
+            <div class="stat-card">
+              <div class="stat-label">Aktivní rezervace celkem</div>
+              <div class="stat-value" id="stat-active-count">–</div>
             </div>
-            <div>
-              <label for="user-role">Role</label>
-              <select id="user-role">
-                <option value="staff">staff</option>
-                <option value="manager">manager</option>
-                <option value="admin">admin</option>
+          </div>
+
+          <div class="card">
+            <h2>Náhled do rozvrhu (dnes)</h2>
+            <div id="schedule-preview"></div>
+            <div class="actions">
+              <button type="button" id="goto-schedule">Otevřít celý rozvrh</button>
+            </div>
+          </div>
+
+          <div class="section-grid">
+            <div class="card">
+              <h2>Obsazenost na následující dny</h2>
+              <div id="upcoming-occupancy"></div>
+            </div>
+            <div class="card">
+              <h2>Nejčastější počet osob (top 3)</h2>
+              <ul class="top-list" id="top-guest-counts"></ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Návštěvnost za posledních 7 dní</h2>
+            <div id="visits-chart"></div>
+          </div>
+        </section>
+
+        <!-- Rozvrh -->
+        <section id="view-schedule" class="view">
+          <div class="schedule-toolbar">
+            <div class="date-nav">
+              <button type="button" id="schedule-prev-day" class="secondary">◀</button>
+              <input type="date" id="schedule-date" />
+              <button type="button" id="schedule-next-day" class="secondary">▶</button>
+              <button type="button" id="schedule-today" class="secondary">Dnes</button>
+            </div>
+            <div class="field" style="min-width:160px">
+              <select id="schedule-zone-filter">
+                <option value="">Všechny zóny</option>
               </select>
             </div>
-            <div style="align-self:end">
-              <button type="submit">Add user</button>
+            <div class="field" style="min-width:160px">
+              <select id="schedule-capacity-filter">
+                <option value="">Libovolná kapacita</option>
+                <option value="2">2+ osoby</option>
+                <option value="4">4+ osoby</option>
+                <option value="6">6+ osob</option>
+                <option value="8">8+ osob</option>
+              </select>
             </div>
-          </form>
-          <table>
-            <thead><tr><th>Name</th><th>E-mail</th><th>Role</th><th></th></tr></thead>
-            <tbody id="users-body"></tbody>
-          </table>
-        </div>
+            <div class="spacer"></div>
+            <button type="button" id="schedule-merge-toggle" class="secondary">Sloučit stoly</button>
+            <button type="button" id="schedule-add">+ Nová rezervace</button>
+          </div>
 
-        <div id="admin-zones" class="admin-panel" hidden>
-          <form id="new-zone-form" class="field-row">
-            <div>
-              <label for="zone-name">Zone name</label>
-              <input type="text" id="zone-name" required />
+          <div id="schedule-merge-bar" class="merge-toolbar" hidden>
+            <span class="muted">Vyberte stoly (klikněte na jejich název) nebo existující rezervace ke sloučení (min. 2)</span>
+            <button type="button" id="schedule-merge-confirm">Sloučit vybrané</button>
+            <button type="button" id="schedule-merge-cancel" class="secondary">Zrušit výběr</button>
+          </div>
+
+          <div class="schedule-scroll">
+            <div id="schedule-grid" class="schedule-grid"></div>
+          </div>
+
+          <div class="merged-blocks">
+            <h2>Spojené stoly</h2>
+            <div id="merged-blocks-list" class="muted">Žádné spojené stoly pro tento den.</div>
+          </div>
+        </section>
+
+        <!-- Přehled rezervací -->
+        <section id="view-reservations" class="view">
+          <div class="filter-bar">
+            <div class="field" style="min-width:220px">
+              <label for="res-search">Hledat</label>
+              <input type="search" id="res-search" placeholder="Jméno, telefon, e-mail, stůl…" />
             </div>
-            <div style="align-self:end">
-              <button type="submit">Add zone</button>
+            <div class="field">
+              <label for="res-date-filter">Datum</label>
+              <input type="date" id="res-date-filter" />
             </div>
-          </form>
-          <table>
-            <thead><tr><th>Zone</th><th></th></tr></thead>
-            <tbody id="zones-body"></tbody>
-          </table>
-        </div>
+            <div class="field">
+              <label for="res-zone-filter">Zóna</label>
+              <select id="res-zone-filter"><option value="">Vše</option></select>
+            </div>
+            <div class="field">
+              <label for="res-capacity-filter">Min. kapacita</label>
+              <input type="number" id="res-capacity-filter" min="1" placeholder="Libovolná" />
+            </div>
+            <div class="field">
+              <label for="res-sort">Řazení</label>
+              <select id="res-sort">
+                <option value="desc">Nejnovější</option>
+                <option value="asc">Nejstarší</option>
+              </select>
+            </div>
+            <div class="field" style="align-self:flex-end">
+              <button type="button" id="res-clear-filters" class="secondary">Vymazat filtry</button>
+            </div>
+            <div class="field" style="align-self:flex-end;margin-left:auto">
+              <button type="button" id="res-add">+ Nová rezervace</button>
+            </div>
+          </div>
 
-        <div id="admin-settings" class="admin-panel" hidden>
-          <div id="settings-body"></div>
-        </div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr><th>Datum</th><th>Čas</th><th>Host</th><th>Kontakt</th><th>Stůl</th><th>Osoby</th><th>Stav</th><th></th></tr>
+              </thead>
+              <tbody id="reservations-body"></tbody>
+            </table>
+          </div>
+        </section>
 
-        <div id="admin-logs" class="admin-panel" hidden>
-          <table>
-            <thead><tr><th>Timestamp</th><th>Action</th><th>Actor</th></tr></thead>
-            <tbody id="logs-body"></tbody>
-          </table>
-        </div>
+        <!-- Archiv -->
+        <section id="view-archive" class="view">
+          <div class="filter-bar">
+            <div class="field" style="min-width:220px">
+              <label for="arch-search">Hledat</label>
+              <input type="search" id="arch-search" placeholder="Jméno, stůl…" />
+            </div>
+            <div class="field">
+              <label for="arch-contact">Telefon / e-mail</label>
+              <input type="search" id="arch-contact" placeholder="+420… nebo e-mail" />
+            </div>
+            <div class="field">
+              <label for="arch-date-filter">Datum</label>
+              <input type="date" id="arch-date-filter" />
+            </div>
+            <div class="field">
+              <label for="arch-zone-filter">Zóna</label>
+              <select id="arch-zone-filter"><option value="">Vše</option></select>
+            </div>
+            <div class="field">
+              <label for="arch-capacity-filter">Min. kapacita</label>
+              <input type="number" id="arch-capacity-filter" min="1" placeholder="Libovolná" />
+            </div>
+            <div class="field">
+              <label for="arch-sort">Řazení</label>
+              <select id="arch-sort">
+                <option value="desc">Nejnovější</option>
+                <option value="asc">Nejstarší</option>
+              </select>
+            </div>
+            <div class="field" style="align-self:flex-end">
+              <button type="button" id="arch-clear-filters" class="secondary">Vymazat filtry</button>
+            </div>
+          </div>
 
-        <div id="admin-stats" class="admin-panel" hidden>
-          <div id="stats-body" class="section-grid"></div>
-        </div>
-      </div>
-    </section>
-  </main>
+          <div class="card">
+            <table>
+              <thead>
+                <tr><th>Datum</th><th>Čas</th><th>Host</th><th>Kontakt</th><th>Stůl</th><th>Osoby</th><th>Stav</th></tr>
+              </thead>
+              <tbody id="archive-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Správa stolů (admin) -->
+        <section id="view-tables" class="view">
+          <div class="tabs">
+            <button type="button" class="admin-tab active" data-tables-tab="tables">Stoly</button>
+            <button type="button" class="admin-tab" data-tables-tab="zones">Zóny</button>
+          </div>
+
+          <div id="tables-panel-tables" class="admin-panel">
+            <div class="filter-bar">
+              <div class="field">
+                <label for="table-zone-filter">Zóna</label>
+                <select id="table-zone-filter"><option value="">Vše</option></select>
+              </div>
+              <div class="field">
+                <label for="table-capacity-filter">Min. kapacita</label>
+                <input type="number" id="table-capacity-filter" min="1" placeholder="Libovolná" />
+              </div>
+              <div class="field">
+                <label for="table-status-filter">Stav</label>
+                <select id="table-status-filter">
+                  <option value="">Vše</option>
+                  <option value="available">Volný</option>
+                  <option value="occupied">Obsazený</option>
+                  <option value="disabled">Deaktivovaný</option>
+                </select>
+              </div>
+              <div class="field" style="align-self:flex-end;margin-left:auto">
+                <button type="button" id="table-add">+ Přidat stůl</button>
+              </div>
+            </div>
+            <div class="card">
+              <table>
+                <thead><tr><th>ID</th><th>Název</th><th>Zóna</th><th>Kapacita</th><th>Stav</th><th></th></tr></thead>
+                <tbody id="tables-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="tables-panel-zones" class="admin-panel" hidden>
+            <form id="new-zone-form" class="field-row">
+              <div>
+                <label for="zone-name">Název zóny</label>
+                <input type="text" id="zone-name" required />
+              </div>
+              <div style="align-self:end">
+                <button type="submit">Přidat zónu</button>
+              </div>
+            </form>
+            <table>
+              <thead><tr><th>Zóna</th><th></th></tr></thead>
+              <tbody id="zones-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Uživatelé (admin) -->
+        <section id="view-users" class="view">
+          <div class="card">
+            <h2>Nový uživatel</h2>
+            <form id="new-user-form" class="field-row">
+              <div>
+                <label for="user-name">Jméno</label>
+                <input type="text" id="user-name" required />
+              </div>
+              <div>
+                <label for="user-email">E-mail</label>
+                <input type="email" id="user-email" required />
+              </div>
+              <div>
+                <label for="user-password">Heslo</label>
+                <input type="password" id="user-password" required />
+              </div>
+              <div>
+                <label for="user-role">Role</label>
+                <select id="user-role">
+                  <option value="staff">staff</option>
+                  <option value="manager">manager</option>
+                  <option value="admin">admin</option>
+                </select>
+              </div>
+              <div style="align-self:end">
+                <button type="submit">Přidat uživatele</button>
+              </div>
+            </form>
+          </div>
+          <div class="card">
+            <table>
+              <thead><tr><th>Jméno</th><th>E-mail</th><th>Role</th><th></th></tr></thead>
+              <tbody id="users-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Nastavení (admin) -->
+        <section id="view-settings" class="view">
+          <div class="card">
+            <h2>Obecná nastavení</h2>
+            <div id="settings-body" class="field-row"></div>
+          </div>
+
+          <div class="card">
+            <h2>Otevírací doba</h2>
+            <div id="opening-hours-body" class="hours-grid"></div>
+            <div class="actions">
+              <button type="button" id="save-opening-hours">Uložit otevírací dobu</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Speciální otevírací doba (svátky apod.)</h2>
+            <div id="special-hours-body"></div>
+            <div class="actions">
+              <button type="button" id="add-special-hour" class="secondary">+ Přidat výjimku</button>
+              <button type="button" id="save-special-hours">Uložit výjimky</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Protokoly (admin) -->
+        <section id="view-logs" class="view">
+          <div class="card">
+            <table>
+              <thead><tr><th>Čas</th><th>Akce</th><th>Uživatel</th></tr></thead>
+              <tbody id="logs-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="modal-root" hidden></div>
+  <div id="hover-tooltip"></div>
+
   <script src="/public/js/api.js"></script>
-  <script src="/public/js/staff-dashboard.js"></script>
+  <script src="/public/js/dashboard/utils.js"></script>
+  <script src="/public/js/dashboard/dashboard-view.js"></script>
+  <script src="/public/js/dashboard/schedule-view.js"></script>
+  <script src="/public/js/dashboard/reservations-view.js"></script>
+  <script src="/public/js/dashboard/tables-view.js"></script>
+  <script src="/public/js/dashboard/admin-view.js"></script>
+  <script src="/public/js/dashboard/main.js"></script>
 </body>
 </html>

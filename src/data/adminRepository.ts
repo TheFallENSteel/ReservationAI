@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { hasDatabase, sql } from '../db/client.js';
-import { listReservations } from './repository.js';
+import { listReservations, toDateOnlyString } from './repository.js';
 import {
   auditLogs as memoryLogs,
   tableBlocks as memoryTableBlocks,
@@ -17,7 +17,7 @@ type TableBlockRow = {
   id: string;
   label: string;
   table_ids: string[];
-  date: string;
+  date: string | Date;
   start_time: string;
   end_time: string;
 };
@@ -28,7 +28,7 @@ const toTableBlock = (row: TableBlockRow): TableBlock => ({
   id: row.id,
   label: row.label,
   tableIds: row.table_ids,
-  date: row.date,
+  date: toDateOnlyString(row.date),
   startTime: row.start_time,
   endTime: row.end_time
 });
