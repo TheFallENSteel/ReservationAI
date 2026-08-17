@@ -152,7 +152,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1rem;
+  padding: 1.5rem;
 }
 
 .stat-card .stat-value {
@@ -551,8 +551,9 @@
 
 .hours-grid {
   display: grid;
-  grid-template-columns: 100px 1fr 1fr;
-  gap: 0.5rem;
+  grid-template-columns: 120px 140px 140px;
+  justify-content: start;
+  gap: 0.75rem;
   align-items: center;
   margin-bottom: 1rem;
 }
@@ -563,11 +564,66 @@
 }
 
 .special-hours-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto auto;
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.special-hours-row input[type="date"] {
+  width: 150px;
+}
+
+.special-hours-row .time-select-group select {
+  min-width: 110px;
+}
+
+/* --- Settings grid (key-value boxes always aligned on the same row) -------- */
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.setting-row label {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text);
+  font-weight: 500;
+  flex: 1;
+}
+
+.setting-row input {
+  width: 100px;
+  text-align: right;
+  font-weight: 600;
+  padding: 0.4rem 0.5rem;
+}
+
+.email-template-box {
+  width: 100%;
+  min-height: 140px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-sizing: border-box;
+  resize: vertical;
 }
 
 /* --- Uniform row action buttons (Upravit / Sloučit / Zrušit / Smazat…) ----- */

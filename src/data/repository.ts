@@ -69,20 +69,48 @@ const toReservation = (row: ReservationRow): Reservation => ({
   blockId: row.block_id ?? undefined
 });
 
+const computeDynamicResourceStatus = (resource: TableResource, allReservations: Reservation[]): TableResource => {
+  if (resource.status === 'disabled') return resource;
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const today = `${y}-${m}-${d}`;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const isOccupied = allReservations.some((r) => {
+    if (r.resourceId !== resource.id || r.date !== today) return false;
+    if (!['confirmed', 'checked_in'].includes(r.status)) return false;
+    const [sh, sm] = r.startTime.split(':').map(Number);
+    const [eh, em] = r.endTime.split(':').map(Number);
+    const sMin = (sh ?? 0) * 60 + (sm ?? 0);
+    const eMin = (eh ?? 0) * 60 + (em ?? 0);
+    return sMin <= nowMinutes && nowMinutes <= eMin;
+  });
+
+  return {
+    ...resource,
+    status: isOccupied ? 'occupied' : 'available'
+  };
+};
+
 export const listResources = async (): Promise<TableResource[]> => {
+  const allReservations = await listReservations();
   if (hasDatabase && sql) {
     const rows = (await sql`SELECT * FROM resources ORDER BY id`) as ResourceRow[];
-    return rows.map(toResource);
+    return rows.map(toResource).map((r) => computeDynamicResourceStatus(r, allReservations));
   }
-  return memoryResources;
+  return memoryResources.map((r) => computeDynamicResourceStatus(r, allReservations));
 };
 
 export const getResource = async (resourceId: string): Promise<TableResource | undefined> => {
+  const allReservations = await listReservations();
   if (hasDatabase && sql) {
     const rows = (await sql`SELECT * FROM resources WHERE id = ${resourceId}`) as ResourceRow[];
-    return rows[0] ? toResource(rows[0]) : undefined;
+    return rows[0] ? computeDynamicResourceStatus(toResource(rows[0]), allReservations) : undefined;
   }
-  return memoryResources.find((resource) => resource.id === resourceId);
+  const found = memoryResources.find((resource) => resource.id === resourceId);
+  return found ? computeDynamicResourceStatus(found, allReservations) : undefined;
 };
 
 export const createResource = async (input: TableResource): Promise<TableResource> => {
@@ -213,7 +241,7 @@ export const deleteReservation = async (reservationId: string): Promise<Reservat
 export const getSettings = async (): Promise<typeof memorySettings> => {
   if (hasDatabase && sql) {
     const rows = (await sql`SELECT value FROM settings WHERE key = 'default'`) as { value: typeof memorySettings }[];
-    return rows[0]?.value ?? memorySettings;
+    return rows[0]?.value ? { ...memorySettings, ...rows[0].value } : memorySettings;
   }
   return memorySettings;
 };

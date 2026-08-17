@@ -3,15 +3,36 @@ const reservationInput = document.getElementById('reservationId');
 const messageEl = document.getElementById('message');
 const detailsEl = document.getElementById('details');
 const statusBadge = document.getElementById('status-badge');
+const startSelect = document.getElementById('edit-start');
+const endSelect = document.getElementById('edit-end');
 
 const params = new URLSearchParams(window.location.search);
 if (params.get('resource')) resourceInput.value = params.get('resource');
 if (params.get('reservation')) reservationInput.value = params.get('reservation');
 
+function allDayTimes(step = 30) {
+  const times = [];
+  for (let m = 0; m < 24 * 60; m += step) {
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    times.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
+  }
+  return times;
+}
+
+function renderTimeOptions(selectEl, selected) {
+  const times = allDayTimes(30);
+  if (selected && !times.includes(selected)) times.push(selected);
+  times.sort();
+  selectEl.innerHTML = times
+    .map((t) => `<option value="${escapeHtml(t)}" ${t === selected ? 'selected' : ''}>${escapeHtml(t)}</option>`)
+    .join('');
+}
+
 function renderReservation(reservation) {
   document.getElementById('edit-date').value = reservation.date;
-  document.getElementById('edit-start').value = reservation.startTime;
-  document.getElementById('edit-end').value = reservation.endTime;
+  renderTimeOptions(startSelect, reservation.startTime);
+  renderTimeOptions(endSelect, reservation.endTime);
   document.getElementById('edit-guests').value = reservation.guestCount;
   statusBadge.textContent = reservation.status;
   statusBadge.className = `badge ${reservation.status}`;

@@ -124,10 +124,11 @@ function computeAvailableStarts({ resourceId, date, excludeId }) {
   const step = Number(Store.settings.slotMinutes) || 30;
   const minDuration = Number(Store.settings.minimumReservationMinutes) || step;
   const lead = Number(Store.settings.minimumLeadMinutes) || 0;
+  const cleanup = Number(Store.settings.cleanupMinutes) || 0;
 
   const busy = reservationsForResourceDate(resourceId, date, excludeId).map((r) => ({
     start: minutesFromTime(r.startTime),
-    end: minutesFromTime(r.endTime)
+    end: minutesFromTime(r.endTime) + cleanup
   }));
 
   const isToday = date === todayStr();
@@ -137,7 +138,7 @@ function computeAvailableStarts({ resourceId, date, excludeId }) {
   const starts = [];
   for (let m = openMinutes; m + minDuration <= closeMinutes; m += step) {
     if (m < earliestMinutes) continue;
-    const overlaps = busy.some((b) => m < b.end && m + minDuration > b.start);
+    const overlaps = busy.some((b) => m < b.end && m + minDuration + cleanup > b.start);
     if (!overlaps) starts.push(timeFromMinutes(m));
   }
   return starts;
@@ -151,6 +152,7 @@ function computeAvailableEnds({ resourceId, date, start, excludeId }) {
   const step = Number(Store.settings.slotMinutes) || 30;
   const minDuration = Number(Store.settings.minimumReservationMinutes) || step;
   const maxDuration = Number(Store.settings.maximumReservationMinutes) || 240;
+  const cleanup = Number(Store.settings.cleanupMinutes) || 0;
   const startMinutes = minutesFromTime(start);
 
   const nextBusyStart = reservationsForResourceDate(resourceId, date, excludeId)
@@ -158,7 +160,7 @@ function computeAvailableEnds({ resourceId, date, start, excludeId }) {
     .filter((s) => s >= startMinutes)
     .sort((a, b) => a - b)[0] ?? closeMinutes;
 
-  const limit = Math.min(closeMinutes, startMinutes + maxDuration, nextBusyStart);
+  const limit = Math.min(closeMinutes, startMinutes + maxDuration, nextBusyStart - cleanup);
 
   const ends = [];
   for (let m = startMinutes + minDuration; m <= limit; m += step) {

@@ -56,8 +56,8 @@ main {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.25rem;
-  margin-bottom: 1.25rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 h1, h2, h3 {
@@ -205,5 +205,26 @@ th, td {
 .section-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.time-select-group {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.time-select-group select {
+  width: 100%;
+}
+
+.time-select-group.unavailable select {
+  border-color: var(--danger);
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
 }

@@ -220,6 +220,7 @@ window.TablesView = (function () {
   }
 
   async function render() {
+    await refreshCoreData();
     await loadZones();
     renderTables();
     renderZones();

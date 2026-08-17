@@ -2,6 +2,7 @@
 window.AdminView = (function () {
   const GENERAL_SETTING_LABELS = {
     slotMinutes: 'Délka rezervačního slotu (min)',
+    cleanupMinutes: 'Doba úklidu stolu (min)',
     minimumReservationMinutes: 'Min. délka rezervace (min)',
     maximumReservationMinutes: 'Max. délka rezervace (min)',
     minimumLeadMinutes: 'Min. čas před rezervací (min)',
@@ -75,7 +76,7 @@ window.AdminView = (function () {
     document.getElementById('settings-body').innerHTML = Object.entries(GENERAL_SETTING_LABELS)
       .map(
         ([key, label]) => `
-        <div>
+        <div class="setting-row">
           <label for="setting-${key}">${escapeHtml(label)}</label>
           <input data-setting="${key}" id="setting-${key}" type="number" value="${escapeHtml(String(settings[key] ?? ''))}" />
         </div>`
@@ -90,6 +91,11 @@ window.AdminView = (function () {
             auth: true,
             body: { value: Number(input.value) }
           });
+          settings[input.dataset.setting] = Number(input.value);
+          if (input.dataset.setting === 'slotMinutes') {
+            renderOpeningHours();
+            renderSpecialHours();
+          }
           toast('Nastavení uloženo.');
         } catch (error) {
           toast(error.message, 'error');
@@ -99,7 +105,8 @@ window.AdminView = (function () {
   }
 
   function timeOptionsFor(value) {
-    const times = allDayTimes(15);
+    const step = Number(settings.slotMinutes) || 30;
+    const times = allDayTimes(step);
     if (value && !times.includes(value)) times.push(value);
     return times.sort();
   }
@@ -187,6 +194,22 @@ window.AdminView = (function () {
     }
   });
 
+  function renderEmailTemplate() {
+    const el = document.getElementById('email-template-body');
+    if (el) el.value = settings.emailTemplate ?? '';
+  }
+
+  document.getElementById('save-email-template')?.addEventListener('click', async () => {
+    const value = document.getElementById('email-template-body').value;
+    try {
+      await apiRequest('/api/admin/settings/emailTemplate', { method: 'PATCH', auth: true, body: { value } });
+      settings.emailTemplate = value;
+      toast('E-mailová šablona byla uložena.');
+    } catch (error) {
+      toast(error.message, 'error');
+    }
+  });
+
   async function renderSettings() {
     const { settings: fetched } = await apiRequest('/api/admin/settings', { auth: true });
     settings = fetched;
@@ -194,6 +217,7 @@ window.AdminView = (function () {
     renderGeneralSettings();
     renderOpeningHours();
     renderSpecialHours();
+    renderEmailTemplate();
   }
 
   // --- Logs --------------------------------------------------------------------

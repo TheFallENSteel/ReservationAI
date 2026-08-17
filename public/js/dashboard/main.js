@@ -90,6 +90,7 @@ document.querySelectorAll('.nav-item[data-view]').forEach((btn) => {
 });
 
 window.gotoView = showView;
+window.refreshCoreData = refreshCoreData;
 
 // --- Shared data loading -------------------------------------------------------
 

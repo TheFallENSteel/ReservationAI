@@ -25,17 +25,22 @@
           </div>
           <div>
             <label for="startTime">Start time</label>
-            <input type="time" id="startTime" required />
+            <div class="time-select-group">
+              <select id="startTime" required aria-label="Start time"></select>
+            </div>
           </div>
           <div>
             <label for="endTime">End time</label>
-            <input type="time" id="endTime" required />
+            <div class="time-select-group">
+              <select id="endTime" required aria-label="End time"></select>
+            </div>
           </div>
           <div>
             <label for="guestCount">Guests</label>
             <input type="number" id="guestCount" min="1" value="2" required />
           </div>
         </div>
+        <p class="field-hint" id="availability-hint"></p>
 
         <label for="resourceId">Table / zone</label>
         <select id="resourceId" required></select>

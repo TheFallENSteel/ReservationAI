@@ -157,14 +157,15 @@ export const auditLogs: AuditLog[] = [
 ];
 
 export const settings = {
-
   slotMinutes: 30,
+  cleanupMinutes: 15,
   minimumReservationMinutes: 60,
   maximumReservationMinutes: 180,
   minimumLeadMinutes: 30,
   archiveRetentionDays: 365,
   dashboardPreviewDays: 7,
   forecastDays: 3,
+  emailTemplate: 'Dobrý den {guestName},\n\nVaše rezervace na jméno {guestName} pro {guestCount} osob dne {date} od {startTime} do {endTime} byla úspěšně přijata.\n\nTěšíme se na Vaši návštěvu!',
   openingHours: {
     monday: { open: '12:00', close: '23:00' },
     tuesday: { open: '12:00', close: '23:00' },

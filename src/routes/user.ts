@@ -32,6 +32,32 @@ export const setupUserRoutes = (router: Router) => {
     }
   });
 
+  // Public availability: returns active booked time intervals without exposing customer PII
+  router.get('/api/user/reservation/availability', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { date, resourceId } = req.query;
+      const all = await listReservations();
+      const active = all.filter((r) => !['cancelled', 'no_show'].includes(r.status));
+      const filtered = active.filter((r) => {
+        if (date && r.date !== String(date)) return false;
+        if (resourceId && r.resourceId !== String(resourceId)) return false;
+        return true;
+      });
+
+      res.json({
+        ok: true,
+        slots: filtered.map((r) => ({
+          resourceId: r.resourceId,
+          date: r.date,
+          startTime: r.startTime,
+          endTime: r.endTime
+        }))
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Book a reservation
   router.post('/api/user/reserve/:resource_id', async (req: Request<{ resource_id: string }>, res: Response, next: NextFunction) => {
     try {

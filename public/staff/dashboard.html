@@ -311,7 +311,7 @@
         <section id="view-settings" class="view">
           <div class="card">
             <h2>Obecná nastavení</h2>
-            <div id="settings-body" class="field-row"></div>
+            <div id="settings-body" class="settings-grid"></div>
           </div>
 
           <div class="card">
@@ -328,6 +328,15 @@
             <div class="actions">
               <button type="button" id="add-special-hour" class="secondary">+ Přidat výjimku</button>
               <button type="button" id="save-special-hours">Uložit výjimky</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>E-mailová šablona (potvrzení rezervace)</h2>
+            <p class="muted">Dostupné zástupné symboly: <code>{guestName}</code>, <code>{guestCount}</code>, <code>{date}</code>, <code>{startTime}</code>, <code>{endTime}</code></p>
+            <textarea id="email-template-body" class="email-template-box" rows="5"></textarea>
+            <div class="actions">
+              <button type="button" id="save-email-template">Uložit šablonu</button>
             </div>
           </div>
         </section>
