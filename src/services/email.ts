@@ -30,7 +30,7 @@ const createTransporter = () => {
 };
 
 export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
-  const from = process.env.SMTP_FROM || 'Rezervační systém <noreply@reserverestaurant.cz>';
+  const from = process.env.EMAIL_FROM;
   const transporter = createTransporter();
 
   try {
