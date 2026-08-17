@@ -30,7 +30,7 @@ const createTransporter = () => {
 };
 
 export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
-  const from = process.env.EMAIL_FROM;
+  const from = process.env.EMAIL_FROM || 'Reservation System <noreply@reserverestaurant.cz>';
   const transporter = createTransporter();
 
   try {

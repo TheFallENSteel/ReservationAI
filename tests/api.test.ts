@@ -195,3 +195,53 @@ test('2FA reservation verification flow via token confirms pending reservation',
     assert.equal(verifyRes.json.reservation.status, 'confirmed');
   });
 });
+
+test('2FA reservation verification flow rejects invalid code and accepts correct code', async () => {
+  await withServer(async (baseUrl) => {
+    const resources = await request(baseUrl, '/api/user/reservation/resources');
+    const resourceId = resources.json.resources[0].id;
+
+    const reserveRes = await request(baseUrl, `/api/user/reserve/${resourceId}`, 'POST', {
+      guestName: 'Verify Code Guest',
+      email: 'verify-code@example.com',
+      guestCount: 2,
+      date: '2026-08-26',
+      startTime: '18:00',
+      endTime: '19:00'
+    });
+    assert.equal(reserveRes.status, 201);
+    const reservationId = reserveRes.json.reservation.id;
+
+    // Reject wrong code
+    const wrongRes = await request(baseUrl, '/api/user/reserve/verify', 'POST', {
+      reservationId,
+      code: '000000'
+    });
+    assert.equal(wrongRes.status, 400);
+    assert.equal(wrongRes.json.ok, false);
+  });
+});
+
+test('staff forgot password flow generates token and allows password reset', async () => {
+  await withServer(async (baseUrl) => {
+    const forgotRes = await request(baseUrl, '/api/staff/password/forgot', 'POST', {
+      email: 'manager@example.com'
+    });
+    assert.equal(forgotRes.status, 200);
+    assert.ok(forgotRes.json.resetToken);
+
+    const resetRes = await request(baseUrl, '/api/staff/password/reset', 'POST', {
+      token: forgotRes.json.resetToken,
+      newPassword: 'NewManagerPass123!'
+    });
+    assert.equal(resetRes.status, 200);
+    assert.equal(resetRes.json.ok, true);
+
+    const loginWithNewPass = await request(baseUrl, '/api/staff/login', 'POST', {
+      email: 'manager@example.com',
+      password: 'NewManagerPass123!'
+    });
+    assert.equal(loginWithNewPass.status, 200);
+    assert.ok(loginWithNewPass.json.token);
+  });
+});

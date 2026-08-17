@@ -57,6 +57,13 @@ export interface PasswordResetToken {
   expiresAt: string;
 }
 
+export interface ReservationVerification {
+  reservationId: string;
+  code: string;
+  token: string;
+  expiresAt: string;
+}
+
 export interface Zone {
   id: string;
   name: string;
@@ -142,6 +149,8 @@ export const staffUsers: StaffUser[] = [
 export const sessions: Session[] = [];
 
 export const passwordResetTokens: PasswordResetToken[] = [];
+
+export const reservationVerifications: ReservationVerification[] = [];
 
 export const zones: Zone[] = [
   { id: 'zone-1', name: 'Garden' },

@@ -60,64 +60,6 @@ export const setupUserRoutes = (router: Router) => {
     }
   });
 
-  // Book a reservation (requires 2FA code / link verification)
-  router.post('/api/user/reserve/:resource_id', async (req: Request<{ resource_id: string }>, res: Response, next: NextFunction) => {
-    try {
-      const { resource_id } = req.params;
-      const resource = await getResource(resource_id);
-      if (!resource) {
-        res.status(404).json({ ok: false, message: `Resource ${resource_id} not found` });
-        return;
-      }
-
-      const payload = req.body ?? {};
-      const reservation: Reservation = {
-        id: `res-${randomUUID()}`,
-        resourceId: resource_id,
-        guestName: payload.guestName ?? 'Guest',
-        email: payload.email ?? '',
-        phone: payload.phone ?? '',
-        guestCount: payload.guestCount ?? resource.minGuests,
-        date: payload.date ?? '',
-        startTime: payload.startTime ?? '',
-        endTime: payload.endTime ?? '',
-        status: 'pending',
-        notes: payload.notes
-      };
-
-      const created = await createReservation(reservation);
-      await addLog('reservation.created', 'guest');
-
-      // Generate 2FA code and confirmation link
-      const { code, token } = createReservationVerification(created.id);
-
-      const host = req.get('host');
-      const protocol = req.protocol;
-      const baseUrl = host ? `${protocol}://${host}` : undefined;
-
-      // Dispatch 2FA verification email
-      await sendReservationEmail(
-        'verification2fa',
-        created,
-        {
-          verificationCode: code,
-          verificationToken: token,
-          tableName: resource.name
-        },
-        baseUrl
-      );
-
-      res.status(201).json({
-        ok: true,
-        requires2fa: true,
-        reservation: created,
-        verificationToken: token
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
-
   // Verify reservation 2FA via 6-digit code
   router.post('/api/user/reserve/verify', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -127,7 +69,7 @@ export const setupUserRoutes = (router: Router) => {
         return;
       }
 
-      const isValid = verifyReservationCode(String(reservationId), String(code));
+      const isValid = await verifyReservationCode(String(reservationId), String(code));
       if (!isValid) {
         res.status(400).json({ ok: false, message: 'Neplatný nebo vypršený ověřovací kód' });
         return;
@@ -160,7 +102,7 @@ export const setupUserRoutes = (router: Router) => {
         return;
       }
 
-      const reservationId = verifyReservationToken(token);
+      const reservationId = await verifyReservationToken(token);
       if (!reservationId) {
         res.status(400).json({ ok: false, message: 'Neplatný nebo vypršený ověřovací odkaz' });
         return;
@@ -177,6 +119,64 @@ export const setupUserRoutes = (router: Router) => {
       await sendReservationEmail('confirmation', updated, { tableName: resource?.name ?? updated.resourceId });
 
       res.json({ ok: true, verified: true, reservation: updated });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Book a reservation (requires 2FA code / link verification)
+  router.post('/api/user/reserve/:resource_id', async (req: Request<{ resource_id: string }>, res: Response, next: NextFunction) => {
+    try {
+      const { resource_id } = req.params;
+      const resource = await getResource(resource_id);
+      if (!resource) {
+        res.status(404).json({ ok: false, message: `Resource ${resource_id} not found` });
+        return;
+      }
+
+      const payload = req.body ?? {};
+      const reservation: Reservation = {
+        id: `res-${randomUUID()}`,
+        resourceId: resource_id,
+        guestName: payload.guestName ?? 'Guest',
+        email: payload.email ?? '',
+        phone: payload.phone ?? '',
+        guestCount: payload.guestCount ?? resource.minGuests,
+        date: payload.date ?? '',
+        startTime: payload.startTime ?? '',
+        endTime: payload.endTime ?? '',
+        status: 'pending',
+        notes: payload.notes
+      };
+
+      const created = await createReservation(reservation);
+      await addLog('reservation.created', 'guest');
+
+      // Generate 2FA code and confirmation link
+      const { code, token } = await createReservationVerification(created.id);
+
+      const host = req.get('host');
+      const protocol = req.protocol;
+      const baseUrl = host ? `${protocol}://${host}` : undefined;
+
+      // Dispatch 2FA verification email
+      await sendReservationEmail(
+        'verification2fa',
+        created,
+        {
+          verificationCode: code,
+          verificationToken: token,
+          tableName: resource.name
+        },
+        baseUrl
+      );
+
+      res.status(201).json({
+        ok: true,
+        requires2fa: true,
+        reservation: created,
+        verificationToken: token
+      });
     } catch (error) {
       next(error);
     }

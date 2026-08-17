@@ -36,7 +36,6 @@ setupStaffAuthRoutes(router);
 setupStaffRoutes(router);
 setupAdminRoutes(router);
 app.use(router);
-app.use(router);
 
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

@@ -16,6 +16,7 @@ import {
 } from '../../data/staffRepository.js';
 import { isNonEmptyString, toSafeUser } from '../../utils/helpers.js';
 import type { StaffUser } from '../../data/mockData.js';
+import { sendEmail } from '../../services/email.js';
 
 export const setupStaffAuthRoutes = (router: Router) => {
   // Register new staff account (self-service creates manager account)
@@ -109,8 +110,19 @@ export const setupStaffAuthRoutes = (router: Router) => {
       };
 
       if (user) {
-        response.resetToken = await createPasswordResetToken(user.id);
+        const token = await createPasswordResetToken(user.id);
+        response.resetToken = token;
         await addLog('staff.password.forgot', user.id);
+
+        const host = req.get('host');
+        const protocol = req.protocol;
+        const baseUrl = host ? `${protocol}://${host}` : 'http://localhost:3000';
+
+        await sendEmail({
+          to: user.email,
+          subject: 'Obnovení hesla k personálnímu účtu',
+          text: `Dobrý den ${user.name},\n\nobdrželi jsme žádost o obnovení Vašeho hesla.\n\nPro nastavení nového hesla použijte následující token:\n${token}\n\nNebo přejděte na:\n${baseUrl}/staff/login?resetToken=${encodeURIComponent(token)}\n\nTento token je platný po dobu 1 hodiny.\n\nPokud jste o změnu nežádali, tento e-mail můžete ignorovat.`
+        });
       }
 
       res.json(response);

@@ -23,6 +23,12 @@ export const runArchiveRetentionCleanup = async (): Promise<number> => {
         RETURNING id
       `) as { id: string }[];
       deletedCount = rows.length;
+
+      // Also clean up expired 2FA verification tokens
+      await sql`
+        DELETE FROM reservation_verifications
+        WHERE expires_at < now()
+      `;
     } else {
       const all = await listReservations();
       const expired = all.filter((r) => r.date < cutoffDateStr);

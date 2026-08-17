@@ -93,6 +93,15 @@ const run = async () => {
   `;
 
   await db`
+    CREATE TABLE IF NOT EXISTS reservation_verifications (
+      reservation_id TEXT PRIMARY KEY REFERENCES reservations(id) ON DELETE CASCADE,
+      code TEXT NOT NULL,
+      token TEXT UNIQUE NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL
+    )
+  `;
+
+  await db`
     CREATE TABLE IF NOT EXISTS zones (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL
