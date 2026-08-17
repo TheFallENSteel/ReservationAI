@@ -632,14 +632,21 @@
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .row-actions button {
-  flex: 0 0 auto;
-  min-width: 84px;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.8rem;
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+  padding: 0.45rem 0.5rem;
+  font-size: 0.82rem;
   text-align: center;
+  justify-content: center;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 /* --- Custom 24h time-select component (avoids native AM/PM locale quirks) - */

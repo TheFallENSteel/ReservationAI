@@ -166,6 +166,12 @@ export const settings = {
   dashboardPreviewDays: 7,
   forecastDays: 3,
   emailTemplate: 'Dobrý den {guestName},\n\nVaše rezervace na jméno {guestName} pro {guestCount} osob dne {date} od {startTime} do {endTime} byla úspěšně přijata.\n\nTěšíme se na Vaši návštěvu!',
+  emailTemplates: {
+    confirmation: 'Dobrý den {guestName},\n\nVaše rezervace (kód: {reservationId}) pro {guestCount} osob dne {date} od {startTime} do {endTime} na stůl {tableName} je potvrzena.\n\nTěšíme se na Vaši návštěvu!',
+    change: 'Dobrý den {guestName},\n\nVaše rezervace (kód: {reservationId}) byla upravena na nový termín dne {date} od {startTime} do {endTime} pro {guestCount} osob.\n\nV případě dotazů nás neváhejte kontaktovat.',
+    verification2fa: 'Dobrý den {guestName},\n\npro potvrzení Vaší rezervace dne {date} ({startTime}–{endTime}) zadejte ověřovací kód:\n\n{verificationCode}\n\nNebo klikněte na tento odkaz:\n{confirmationUrl}\n\nKód je platný po dobu 15 minut.',
+    cancellation: 'Dobrý den {guestName},\n\nVaše rezervace na jméno {guestName} dne {date} ({startTime}–{endTime}) byla zrušena.\n\nDěkujeme za pochopení.'
+  },
   openingHours: {
     monday: { open: '12:00', close: '23:00' },
     tuesday: { open: '12:00', close: '23:00' },

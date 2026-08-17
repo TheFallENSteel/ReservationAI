@@ -102,8 +102,11 @@ async function refreshCoreData() {
   ]);
 
   Store.reservations = reservationsRes.reservations;
-  Store.resources = resourcesRes.resources;
   Store.tableBlocks = blocksRes.blocks;
+  Store.resources = resourcesRes.resources.map((r) => ({
+    ...r,
+    status: computeClientResourceStatus(r, Store.reservations)
+  }));
   Store.zoneNames = [...new Set(Store.resources.map((r) => r.zone))].sort();
 
   try {

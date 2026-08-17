@@ -234,10 +234,11 @@
               <div class="field">
                 <label for="table-status-filter">Stav</label>
                 <select id="table-status-filter">
-                  <option value="">Vše</option>
+                  <option value="">Aktivní (vše)</option>
                   <option value="available">Volný</option>
                   <option value="occupied">Obsazený</option>
                   <option value="disabled">Deaktivovaný</option>
+                  <option value="all">Všechny (včetně deaktivovaných)</option>
                 </select>
               </div>
               <div class="field" style="align-self:flex-end;margin-left:auto">
@@ -309,34 +310,65 @@
 
         <!-- Nastavení (admin) -->
         <section id="view-settings" class="view">
-          <div class="card">
-            <h2>Obecná nastavení</h2>
-            <div id="settings-body" class="settings-grid"></div>
+          <div class="tabs">
+            <button type="button" class="admin-tab active" data-settings-tab="general">⚙️ Obecné</button>
+            <button type="button" class="admin-tab" data-settings-tab="hours">⏰ Otevírací doba</button>
+            <button type="button" class="admin-tab" data-settings-tab="emails">✉️ E-mailové šablony</button>
           </div>
 
-          <div class="card">
-            <h2>Otevírací doba</h2>
-            <div id="opening-hours-body" class="hours-grid"></div>
-            <div class="actions">
-              <button type="button" id="save-opening-hours">Uložit otevírací dobu</button>
+          <div id="settings-panel-general" class="admin-panel">
+            <div class="card">
+              <h2>Obecná nastavení</h2>
+              <div id="settings-body" class="settings-grid"></div>
             </div>
           </div>
 
-          <div class="card">
-            <h2>Speciální otevírací doba (svátky apod.)</h2>
-            <div id="special-hours-body"></div>
-            <div class="actions">
-              <button type="button" id="add-special-hour" class="secondary">+ Přidat výjimku</button>
-              <button type="button" id="save-special-hours">Uložit výjimky</button>
+          <div id="settings-panel-hours" class="admin-panel" hidden>
+            <div class="card">
+              <h2>Týdenní otevírací doba</h2>
+              <div id="opening-hours-body" class="hours-grid"></div>
+              <div class="actions">
+                <button type="button" id="save-opening-hours">Uložit otevírací dobu</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Speciální otevírací doba (svátky apod.)</h2>
+              <div id="special-hours-body"></div>
+              <div class="actions">
+                <button type="button" id="add-special-hour" class="secondary">+ Přidat výjimku</button>
+                <button type="button" id="save-special-hours">Uložit výjimky</button>
+              </div>
             </div>
           </div>
 
-          <div class="card">
-            <h2>E-mailová šablona (potvrzení rezervace)</h2>
-            <p class="muted">Dostupné zástupné symboly: <code>{guestName}</code>, <code>{guestCount}</code>, <code>{date}</code>, <code>{startTime}</code>, <code>{endTime}</code></p>
-            <textarea id="email-template-body" class="email-template-box" rows="5"></textarea>
-            <div class="actions">
-              <button type="button" id="save-email-template">Uložit šablonu</button>
+          <div id="settings-panel-emails" class="admin-panel" hidden>
+            <div class="card">
+              <h2>Potvrzení rezervace</h2>
+              <p class="muted">Odesílá se hostovi po úspěšném vytvoření a ověření rezervace.<br/>Zástupné symboly: <code>{guestName}</code>, <code>{guestCount}</code>, <code>{date}</code>, <code>{startTime}</code>, <code>{endTime}</code>, <code>{tableName}</code>, <code>{reservationId}</code></p>
+              <textarea id="email-tpl-confirmation" class="email-template-box" rows="4"></textarea>
+            </div>
+
+            <div class="card">
+              <h2>Změna rezervace</h2>
+              <p class="muted">Odesílá se hostovi při úpravě data, času nebo stolu.<br/>Zástupné symboly: <code>{guestName}</code>, <code>{guestCount}</code>, <code>{date}</code>, <code>{startTime}</code>, <code>{endTime}</code>, <code>{tableName}</code>, <code>{reservationId}</code></p>
+              <textarea id="email-tpl-change" class="email-template-box" rows="4"></textarea>
+            </div>
+
+            <div class="card">
+              <h2>Ověřovací e-mail (2FA kód &amp; odkaz)</h2>
+              <p class="muted">Odesílá se před schválením rezervace pro ověření e-mailu hosta.<br/>Zástupné symboly: <code>{guestName}</code>, <code>{verificationCode}</code>, <code>{confirmationUrl}</code>, <code>{date}</code>, <code>{startTime}</code>, <code>{endTime}</code></p>
+              <textarea id="email-tpl-verification2fa" class="email-template-box" rows="4"></textarea>
+            </div>
+
+            <div class="card">
+              <h2>Zrušení rezervace</h2>
+              <p class="muted">Odesílá se hostovi při zrušení rezervace.<br/>Zástupné symboly: <code>{guestName}</code>, <code>{date}</code>, <code>{startTime}</code>, <code>{endTime}</code>, <code>{tableName}</code></p>
+              <textarea id="email-tpl-cancellation" class="email-template-box" rows="4"></textarea>
+            </div>
+
+            <div class="actions" style="margin-bottom: 1.5rem;">
+              <button type="button" id="save-all-email-templates">Uložit všechny šablony</button>
             </div>
           </div>
         </section>

@@ -79,13 +79,20 @@ const computeDynamicResourceStatus = (resource: TableResource, allReservations: 
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
   const isOccupied = allReservations.some((r) => {
-    if (r.resourceId !== resource.id || r.date !== today) return false;
-    if (!['confirmed', 'checked_in'].includes(r.status)) return false;
-    const [sh, sm] = r.startTime.split(':').map(Number);
-    const [eh, em] = r.endTime.split(':').map(Number);
-    const sMin = (sh ?? 0) * 60 + (sm ?? 0);
-    const eMin = (eh ?? 0) * 60 + (em ?? 0);
-    return sMin <= nowMinutes && nowMinutes <= eMin;
+    if (r.resourceId !== resource.id) return false;
+    if (r.status === 'cancelled' || r.status === 'no_show' || r.status === 'archived') return false;
+    // If a guest is currently checked in (přítomen), the table is physically occupied right now
+    if (r.status === 'checked_in') return true;
+    if (r.date === today) {
+      if (['confirmed', 'completed', 'pending'].includes(r.status)) {
+        const [sh, sm] = r.startTime.split(':').map(Number);
+        const [eh, em] = r.endTime.split(':').map(Number);
+        const sMin = (sh ?? 0) * 60 + (sm ?? 0);
+        const eMin = (eh ?? 0) * 60 + (em ?? 0);
+        return sMin <= nowMinutes && nowMinutes <= eMin;
+      }
+    }
+    return false;
   });
 
   return {

@@ -12,6 +12,8 @@ import {
   updateReservation
 } from '../data/repository.js';
 import type { Reservation } from '../data/mockData.js';
+import { createReservationVerification, verifyReservationCode, verifyReservationToken } from '../auth/verification.js';
+import { sendReservationEmail } from '../services/email.js';
 
 export const setupUserRoutes = (router: Router) => {
   // Guest settings
@@ -58,7 +60,7 @@ export const setupUserRoutes = (router: Router) => {
     }
   });
 
-  // Book a reservation
+  // Book a reservation (requires 2FA code / link verification)
   router.post('/api/user/reserve/:resource_id', async (req: Request<{ resource_id: string }>, res: Response, next: NextFunction) => {
     try {
       const { resource_id } = req.params;
@@ -85,7 +87,96 @@ export const setupUserRoutes = (router: Router) => {
 
       const created = await createReservation(reservation);
       await addLog('reservation.created', 'guest');
-      res.status(201).json({ ok: true, reservation: created });
+
+      // Generate 2FA code and confirmation link
+      const { code, token } = createReservationVerification(created.id);
+
+      const host = req.get('host');
+      const protocol = req.protocol;
+      const baseUrl = host ? `${protocol}://${host}` : undefined;
+
+      // Dispatch 2FA verification email
+      await sendReservationEmail(
+        'verification2fa',
+        created,
+        {
+          verificationCode: code,
+          verificationToken: token,
+          tableName: resource.name
+        },
+        baseUrl
+      );
+
+      res.status(201).json({
+        ok: true,
+        requires2fa: true,
+        reservation: created,
+        verificationToken: token
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Verify reservation 2FA via 6-digit code
+  router.post('/api/user/reserve/verify', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { reservationId, code } = req.body ?? {};
+      if (!reservationId || !code) {
+        res.status(400).json({ ok: false, message: 'reservationId and code are required' });
+        return;
+      }
+
+      const isValid = verifyReservationCode(String(reservationId), String(code));
+      if (!isValid) {
+        res.status(400).json({ ok: false, message: 'Neplatný nebo vypršený ověřovací kód' });
+        return;
+      }
+
+      const updated = await updateReservation(String(reservationId), { status: 'confirmed' });
+      if (!updated) {
+        res.status(404).json({ ok: false, message: 'Rezervace nebyla nalezena' });
+        return;
+      }
+
+      await addLog('reservation.2fa_verified', 'guest');
+      const resource = await getResource(updated.resourceId);
+
+      // Send confirmation email after successful 2FA
+      await sendReservationEmail('confirmation', updated, { tableName: resource?.name ?? updated.resourceId });
+
+      res.json({ ok: true, verified: true, reservation: updated });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Verify reservation 2FA via email link token
+  router.get('/api/user/reserve/verify', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const token = String(req.query.token ?? '');
+      if (!token) {
+        res.status(400).json({ ok: false, message: 'Ověřovací token chybí' });
+        return;
+      }
+
+      const reservationId = verifyReservationToken(token);
+      if (!reservationId) {
+        res.status(400).json({ ok: false, message: 'Neplatný nebo vypršený ověřovací odkaz' });
+        return;
+      }
+
+      const updated = await updateReservation(reservationId, { status: 'confirmed' });
+      if (!updated) {
+        res.status(404).json({ ok: false, message: 'Rezervace nebyla nalezena' });
+        return;
+      }
+
+      await addLog('reservation.link_verified', 'guest');
+      const resource = await getResource(updated.resourceId);
+      await sendReservationEmail('confirmation', updated, { tableName: resource?.name ?? updated.resourceId });
+
+      res.json({ ok: true, verified: true, reservation: updated });
     } catch (error) {
       next(error);
     }
@@ -118,6 +209,10 @@ export const setupUserRoutes = (router: Router) => {
       }
 
       const updated = await updateReservation(reservation_id, req.body ?? {});
+      if (updated) {
+        const resource = await getResource(updated.resourceId);
+        await sendReservationEmail('change', updated, { tableName: resource?.name ?? updated.resourceId });
+      }
       res.json({ ok: true, updated });
     } catch (error) {
       next(error);
@@ -135,6 +230,10 @@ export const setupUserRoutes = (router: Router) => {
       }
 
       const updated = await updateReservation(reservation_id, { status: 'cancelled' });
+      if (updated) {
+        const resource = await getResource(updated.resourceId);
+        await sendReservationEmail('cancellation', updated, { tableName: resource?.name ?? updated.resourceId });
+      }
       res.json({ ok: true, deleted: updated });
     } catch (error) {
       next(error);

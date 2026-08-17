@@ -194,17 +194,45 @@ window.AdminView = (function () {
     }
   });
 
-  function renderEmailTemplate() {
-    const el = document.getElementById('email-template-body');
-    if (el) el.value = settings.emailTemplate ?? '';
+  // --- Settings Sub-Tabs ----------------------------------------------------
+  document.querySelectorAll('[data-settings-tab]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('[data-settings-tab]').forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.settingsTab;
+      document.getElementById('settings-panel-general').hidden = target !== 'general';
+      document.getElementById('settings-panel-hours').hidden = target !== 'hours';
+      document.getElementById('settings-panel-emails').hidden = target !== 'emails';
+    });
+  });
+
+  function renderEmailTemplates() {
+    const templates = settings.emailTemplates ?? {};
+    const tplConfirm = document.getElementById('email-tpl-confirmation');
+    const tplChange = document.getElementById('email-tpl-change');
+    const tpl2fa = document.getElementById('email-tpl-verification2fa');
+    const tplCancel = document.getElementById('email-tpl-cancellation');
+
+    if (tplConfirm) tplConfirm.value = templates.confirmation ?? settings.emailTemplate ?? '';
+    if (tplChange) tplChange.value = templates.change ?? '';
+    if (tpl2fa) tpl2fa.value = templates.verification2fa ?? '';
+    if (tplCancel) tplCancel.value = templates.cancellation ?? '';
   }
 
-  document.getElementById('save-email-template')?.addEventListener('click', async () => {
-    const value = document.getElementById('email-template-body').value;
+  document.getElementById('save-all-email-templates')?.addEventListener('click', async () => {
+    const emailTemplates = {
+      confirmation: document.getElementById('email-tpl-confirmation')?.value ?? '',
+      change: document.getElementById('email-tpl-change')?.value ?? '',
+      verification2fa: document.getElementById('email-tpl-verification2fa')?.value ?? '',
+      cancellation: document.getElementById('email-tpl-cancellation')?.value ?? ''
+    };
+
     try {
-      await apiRequest('/api/admin/settings/emailTemplate', { method: 'PATCH', auth: true, body: { value } });
-      settings.emailTemplate = value;
-      toast('E-mailová šablona byla uložena.');
+      await apiRequest('/api/admin/settings/emailTemplates', { method: 'PATCH', auth: true, body: { value: emailTemplates } });
+      await apiRequest('/api/admin/settings/emailTemplate', { method: 'PATCH', auth: true, body: { value: emailTemplates.confirmation } });
+      settings.emailTemplates = emailTemplates;
+      settings.emailTemplate = emailTemplates.confirmation;
+      toast('E-mailové šablony byly úspěšně uloženy.');
     } catch (error) {
       toast(error.message, 'error');
     }
@@ -217,7 +245,7 @@ window.AdminView = (function () {
     renderGeneralSettings();
     renderOpeningHours();
     renderSpecialHours();
-    renderEmailTemplate();
+    renderEmailTemplates();
   }
 
   // --- Logs --------------------------------------------------------------------

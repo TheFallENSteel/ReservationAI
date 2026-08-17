@@ -183,8 +183,11 @@ function findNearestAvailableSlot(resourceId, fromDate = todayStr(), maxDays = 6
   return { date: fromDate, start: '12:00', end: '13:00' };
 }
 
-// --- Reservation status -> readable Czech label ----------------------------
+// --- Reservation & Table status -> readable Czech label ---------------------
 const STATUS_LABELS = {
+  available: 'Volný',
+  occupied: 'Obsazený',
+  disabled: 'Deaktivovaný',
   pending: 'Čeká',
   confirmed: 'Potvrzeno',
   checked_in: 'Přítomen',
@@ -200,6 +203,30 @@ function statusLabel(status) {
 
 function statusBadgeHtml(status) {
   return `<span class="badge ${escapeHtml(status)}">${escapeHtml(statusLabel(status))}</span>`;
+}
+
+function computeClientResourceStatus(resource, reservations = Store.reservations) {
+  if (resource.status === 'disabled') return 'disabled';
+  const today = todayStr();
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const isOccupied = reservations.some((r) => {
+    if (r.resourceId !== resource.id) return false;
+    if (r.status === 'cancelled' || r.status === 'no_show' || r.status === 'archived') return false;
+    // Checked-in (přítomen) guest means table is physically occupied
+    if (r.status === 'checked_in') return true;
+    if (r.date === today) {
+      if (['confirmed', 'completed', 'pending'].includes(r.status)) {
+        const sMin = minutesFromTime(r.startTime);
+        const eMin = minutesFromTime(r.endTime);
+        return sMin <= nowMinutes && nowMinutes <= eMin;
+      }
+    }
+    return false;
+  });
+
+  return isOccupied ? 'occupied' : 'available';
 }
 
 // A reservation counts as "archived" once its full duration has elapsed.

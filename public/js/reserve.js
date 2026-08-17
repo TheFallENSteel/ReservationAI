@@ -242,6 +242,51 @@ async function init() {
   }
 }
 
+const bookingCard = document.getElementById('booking-card');
+const verificationCard = document.getElementById('verification-card');
+const verifyForm = document.getElementById('verify-form');
+const verifyCodeInput = document.getElementById('verify-code');
+const verifyEmailDisplay = document.getElementById('verify-email-display');
+const verifyBackBtn = document.getElementById('verify-back-btn');
+
+let currentPendingReservationId = null;
+
+function showConfirmation(reservation) {
+  bookingCard.hidden = true;
+  verificationCard.hidden = true;
+  document.getElementById('confirm-reservation-id').textContent = reservation.id;
+  document.getElementById('confirm-resource-id').textContent = reservation.resourceId;
+  document.getElementById('manage-link').href = `/reserve/manage?resource=${encodeURIComponent(reservation.resourceId)}&reservation=${encodeURIComponent(reservation.id)}`;
+  confirmationEl.hidden = false;
+}
+
+verifyBackBtn.addEventListener('click', () => {
+  verificationCard.hidden = true;
+  bookingCard.hidden = false;
+  messageEl.hidden = true;
+});
+
+verifyForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  messageEl.hidden = true;
+  const code = verifyCodeInput.value.trim();
+  if (!code || !currentPendingReservationId) {
+    showMessage(messageEl, 'Zadejte 6místný kód.', 'error');
+    return;
+  }
+
+  try {
+    const res = await apiRequest('/api/user/reserve/verify', {
+      method: 'POST',
+      body: { reservationId: currentPendingReservationId, code }
+    });
+    showMessage(messageEl, 'Rezervace byla úspěšně ověřena a potvrzena.', 'success');
+    showConfirmation(res.reservation);
+  } catch (error) {
+    showMessage(messageEl, error.message, 'error');
+  }
+});
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   messageEl.hidden = true;
@@ -250,6 +295,7 @@ form.addEventListener('submit', async (event) => {
   const resourceId = resourceSelect.value;
   const startTime = startTimeSelect.value;
   const endTime = endTimeSelect.value;
+  const email = document.getElementById('email').value.trim();
 
   if (!startTime || !endTime) {
     showMessage(messageEl, 'Vyberte platný čas rezervace.', 'error');
@@ -262,22 +308,41 @@ form.addEventListener('submit', async (event) => {
     endTime,
     guestCount: Number(document.getElementById('guestCount').value),
     guestName: document.getElementById('guestName').value,
-    email: document.getElementById('email').value,
+    email,
     phone: document.getElementById('phone').value,
     notes: document.getElementById('notes').value || undefined
   };
 
   try {
-    const { reservation } = await apiRequest(`/api/user/reserve/${resourceId}`, { method: 'POST', body: payload });
-    showMessage(messageEl, 'Rezervace byla úspěšně odeslána.', 'success');
-    document.getElementById('confirm-reservation-id').textContent = reservation.id;
-    document.getElementById('confirm-resource-id').textContent = reservation.resourceId;
-    document.getElementById('manage-link').href = `/reserve/manage?resource=${reservation.resourceId}&reservation=${reservation.id}`;
-    confirmationEl.hidden = false;
-    form.reset();
+    const res = await apiRequest(`/api/user/reserve/${resourceId}`, { method: 'POST', body: payload });
+    currentPendingReservationId = res.reservation.id;
+    verifyEmailDisplay.textContent = email;
+    verifyCodeInput.value = '';
+    bookingCard.hidden = true;
+    verificationCard.hidden = false;
+    showMessage(messageEl, 'Ověřovací kód a odkaz byly odeslány na Váš e-mail.', 'success');
   } catch (error) {
     showMessage(messageEl, error.message, 'error');
   }
 });
 
-init();
+async function checkUrlVerification() {
+  const params = new URLSearchParams(window.location.search);
+  const verifyToken = params.get('verifyToken');
+  if (verifyToken) {
+    try {
+      const res = await apiRequest(`/api/user/reserve/verify?token=${encodeURIComponent(verifyToken)}`);
+      showMessage(messageEl, 'Váš e-mail a rezervace byly úspěšně ověřeny.', 'success');
+      showConfirmation(res.reservation);
+    } catch (error) {
+      showMessage(messageEl, error.message, 'error');
+    }
+  }
+}
+
+async function start() {
+  await init();
+  await checkUrlVerification();
+}
+
+start();

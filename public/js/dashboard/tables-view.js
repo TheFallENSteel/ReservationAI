@@ -21,8 +21,12 @@ window.TablesView = (function () {
     return Store.resources.filter((r) => {
       if (filters.zone && r.zone !== filters.zone) return false;
       if (filters.capacity && r.capacity < Number(filters.capacity)) return false;
-      if (filters.status && r.status !== filters.status) return false;
-      return true;
+      if (filters.status) {
+        if (filters.status === 'all') return true;
+        return r.status === filters.status;
+      }
+      // By default, don't show disabled tables
+      return r.status !== 'disabled';
     });
   }
 

@@ -170,3 +170,28 @@ test('staff can merge reservations into a table block and split them apart again
     assert.deepEqual(split.json.released.sort(), reservationIds.sort());
   });
 });
+
+test('2FA reservation verification flow via token confirms pending reservation', async () => {
+  await withServer(async (baseUrl) => {
+    const resources = await request(baseUrl, '/api/user/reservation/resources');
+    const resourceId = resources.json.resources[0].id;
+
+    const reserveRes = await request(baseUrl, `/api/user/reserve/${resourceId}`, 'POST', {
+      guestName: 'Verify Guest',
+      email: 'verify@example.com',
+      guestCount: 2,
+      date: '2026-08-25',
+      startTime: '18:00',
+      endTime: '19:00'
+    });
+    assert.equal(reserveRes.status, 201);
+    assert.equal(reserveRes.json.requires2fa, true);
+    assert.ok(reserveRes.json.verificationToken);
+
+    const token = reserveRes.json.verificationToken;
+    const verifyRes = await request(baseUrl, `/api/user/reserve/verify?token=${encodeURIComponent(token)}`);
+    assert.equal(verifyRes.status, 200);
+    assert.equal(verifyRes.json.verified, true);
+    assert.equal(verifyRes.json.reservation.status, 'confirmed');
+  });
+});

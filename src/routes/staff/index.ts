@@ -8,6 +8,7 @@ import {
   deleteReservation,
   getReservation,
   getReservationsByIds,
+  getResource,
   listReservations,
   listResources,
   updateReservation
@@ -15,6 +16,7 @@ import {
 import { updateStaffUser, findStaffById } from '../../data/staffRepository.js';
 import type { Reservation } from '../../data/mockData.js';
 import { isNonEmptyString, toSafeUser } from '../../utils/helpers.js';
+import { sendReservationEmail } from '../../services/email.js';
 
 export const setupStaffRoutes = (router: Router) => {
   // Get current user
@@ -66,6 +68,10 @@ export const setupStaffRoutes = (router: Router) => {
 
       const created = await createReservation(reservation);
       await addLog('reservation.created', req.staffUser!.id);
+
+      const resource = await getResource(created.resourceId);
+      await sendReservationEmail('confirmation', created, { tableName: resource?.name ?? created.resourceId });
+
       res.status(201).json({ ok: true, reservation: created });
     } catch (error) {
       next(error);
@@ -97,6 +103,13 @@ export const setupStaffRoutes = (router: Router) => {
       }
 
       await addLog('reservation.updated', req.staffUser!.id);
+      const resource = await getResource(updated.resourceId);
+      if (updated.status === 'cancelled') {
+        await sendReservationEmail('cancellation', updated, { tableName: resource?.name ?? updated.resourceId });
+      } else {
+        await sendReservationEmail('change', updated, { tableName: resource?.name ?? updated.resourceId });
+      }
+
       res.json({ ok: true, updated });
     } catch (error) {
       next(error);
@@ -113,6 +126,9 @@ export const setupStaffRoutes = (router: Router) => {
       }
 
       await addLog('reservation.deleted', req.staffUser!.id);
+      const resource = await getResource(deleted.resourceId);
+      await sendReservationEmail('cancellation', deleted, { tableName: resource?.name ?? deleted.resourceId });
+
       res.json({ ok: true, deleted });
     } catch (error) {
       next(error);
@@ -130,6 +146,11 @@ export const setupStaffRoutes = (router: Router) => {
       }
 
       await addLog(`reservation.status.${status}`, req.staffUser!.id);
+      const resource = await getResource(reservation.resourceId);
+      if (status === 'cancelled') {
+        await sendReservationEmail('cancellation', reservation, { tableName: resource?.name ?? reservation.resourceId });
+      }
+
       res.json({ ok: true, reservation });
     } catch (error) {
       next(error);

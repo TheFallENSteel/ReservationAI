@@ -15,7 +15,7 @@
     </nav>
   </header>
   <main>
-    <div class="card">
+    <div class="card" id="booking-card">
       <h1>Book a table</h1>
       <form id="reserve-form">
         <div class="field-row">
@@ -67,16 +67,33 @@
           <button type="submit">Request reservation</button>
         </div>
       </form>
-      <p id="message" class="message" hidden></p>
+    </div>
+
+    <div class="card" id="verification-card" hidden>
+      <h2>Ověření rezervace (2FA)</h2>
+      <p>Na Váš e-mail <strong id="verify-email-display"></strong> byl odeslán 6místný ověřovací kód a potvrzovací odkaz.</p>
+      <form id="verify-form">
+        <label for="verify-code">6místný ověřovací kód</label>
+        <input type="text" id="verify-code" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="123456" required style="font-size: 1.3rem; letter-spacing: 0.3em; text-align: center; max-width: 200px;" />
+        <div class="actions" style="margin-top: 1.25rem;">
+          <button type="submit">Ověřit a potvrdit rezervaci</button>
+          <button type="button" id="verify-back-btn" class="secondary">Zpět k formuláři</button>
+        </div>
+      </form>
     </div>
 
     <div class="card" id="confirmation" hidden>
-      <h2>Reservation requested</h2>
-      <p>Save these details to manage your reservation later:</p>
-      <p><strong>Reservation ID:</strong> <span id="confirm-reservation-id"></span></p>
-      <p><strong>Table ID:</strong> <span id="confirm-resource-id"></span></p>
-      <a class="button" id="manage-link" href="/reserve/manage">Manage this reservation</a>
+      <h2>Rezervace byla úspěšně potvrzena!</h2>
+      <p>Uložte si tyto údaje pro pozdější správu nebo změnu rezervace:</p>
+      <p><strong>Kód rezervace:</strong> <span id="confirm-reservation-id"></span></p>
+      <p><strong>Stůl:</strong> <span id="confirm-resource-id"></span></p>
+      <div class="actions">
+        <a class="button" id="manage-link" href="/reserve/manage">Spravovat tuto rezervaci</a>
+        <a class="button secondary" href="/reserve">Vytvořit další rezervaci</a>
+      </div>
     </div>
+
+    <p id="message" class="message" hidden></p>
   </main>
   <script src="/public/js/api.js"></script>
   <script src="/public/js/reserve.js"></script>
