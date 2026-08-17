@@ -245,3 +245,76 @@ test('staff forgot password flow generates token and allows password reset', asy
     assert.ok(loginWithNewPass.json.token);
   });
 });
+
+test('backend validation rejects start time after end time, misaligned steps, illegal guest counts, and collisions', async () => {
+  await withServer(async (baseUrl) => {
+    const resources = await request(baseUrl, '/api/user/reservation/resources');
+    const table1 = resources.json.resources.find((r: { id: string }) => r.id === 'table-1'); // capacity: 2, min: 1, max: 2
+
+    // 1. Start time after end time
+    const invalidTimeSeq = await request(baseUrl, `/api/user/reserve/${table1.id}`, 'POST', {
+      guestName: 'Invalid Time',
+      email: 'invalid@example.com',
+      guestCount: 2,
+      date: '2026-08-28',
+      startTime: '20:00',
+      endTime: '19:00'
+    });
+    assert.equal(invalidTimeSeq.status, 400);
+    assert.equal(invalidTimeSeq.json.ok, false);
+
+    // 2. Misaligned slot minutes (e.g. 18:17 instead of :00 or :30)
+    const misaligned = await request(baseUrl, `/api/user/reserve/${table1.id}`, 'POST', {
+      guestName: 'Misaligned',
+      email: 'misaligned@example.com',
+      guestCount: 2,
+      date: '2026-08-28',
+      startTime: '18:17',
+      endTime: '19:17'
+    });
+    assert.equal(misaligned.status, 400);
+    assert.equal(misaligned.json.ok, false);
+
+    // 3. Illegal guest count (too many guests for table-1 capacity of 2)
+    const tooManyGuests = await request(baseUrl, `/api/user/reserve/${table1.id}`, 'POST', {
+      guestName: 'Too Many',
+      email: 'toomany@example.com',
+      guestCount: 10,
+      date: '2026-08-28',
+      startTime: '18:00',
+      endTime: '19:00'
+    });
+    assert.equal(tooManyGuests.status, 400);
+    assert.equal(tooManyGuests.json.ok, false);
+
+    // 4. Collision check on same table
+    const firstBooking = await request(baseUrl, `/api/user/reserve/${table1.id}`, 'POST', {
+      guestName: 'First Booker',
+      email: 'first@example.com',
+      guestCount: 2,
+      date: '2026-08-28',
+      startTime: '18:00',
+      endTime: '19:30'
+    });
+    assert.equal(firstBooking.status, 201);
+
+    // Overlapping booking on same table (18:30-19:30 overlaps with 18:00-19:30 + cleanup)
+    const collidingBooking = await request(baseUrl, `/api/user/reserve/${table1.id}`, 'POST', {
+      guestName: 'Colliding Booker',
+      email: 'colliding@example.com',
+      guestCount: 2,
+      date: '2026-08-28',
+      startTime: '18:30',
+      endTime: '19:30'
+    });
+    assert.equal(collidingBooking.status, 400);
+    assert.equal(collidingBooking.json.ok, false);
+
+    // 5. User PATCH is disallowed (only cancel allowed)
+    const patchAttempt = await request(baseUrl, `/api/user/reserve/${table1.id}/${firstBooking.json.reservation.id}`, 'PATCH', {
+      startTime: '19:00'
+    });
+    assert.equal(patchAttempt.status, 403);
+    assert.equal(patchAttempt.json.ok, false);
+  });
+});

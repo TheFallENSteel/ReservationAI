@@ -39,28 +39,30 @@
       <div class="field-row">
         <div>
           <label for="edit-date">Date</label>
-          <input type="date" id="edit-date" />
+          <input type="date" id="edit-date" disabled />
         </div>
         <div>
           <label for="edit-start">Start time</label>
           <div class="time-select-group">
-            <select id="edit-start"></select>
+            <select id="edit-start" disabled></select>
           </div>
         </div>
         <div>
           <label for="edit-end">End time</label>
           <div class="time-select-group">
-            <select id="edit-end"></select>
+            <select id="edit-end" disabled></select>
           </div>
         </div>
         <div>
           <label for="edit-guests">Guests</label>
-          <input type="number" id="edit-guests" min="1" />
+          <input type="number" id="edit-guests" min="1" disabled />
         </div>
       </div>
       <p><strong>Status:</strong> <span id="status-badge" class="badge"></span></p>
+      <p class="muted" style="margin-top: 0.75rem;">
+        Note: Existing reservations cannot be edited directly. To change your date, time or guest count, please cancel this booking and create a new reservation.
+      </p>
       <div class="actions">
-        <button id="save-btn">Save changes</button>
         <button id="cancel-btn" class="danger">Cancel reservation</button>
       </div>
     </div>

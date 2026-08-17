@@ -14,6 +14,7 @@ import {
 import type { Reservation } from '../data/mockData.js';
 import { createReservationVerification, verifyReservationCode, verifyReservationToken } from '../auth/verification.js';
 import { sendReservationEmail } from '../services/email.js';
+import { validateReservationPayload } from '../utils/validation.js';
 
 export const setupUserRoutes = (router: Router) => {
   // Guest settings
@@ -135,13 +136,32 @@ export const setupUserRoutes = (router: Router) => {
       }
 
       const payload = req.body ?? {};
+      const settings = await getSettings();
+      const allReservations = await listReservations();
+
+      const validation = validateReservationPayload({
+        resource,
+        settings,
+        allReservations,
+        date: String(payload.date ?? ''),
+        startTime: String(payload.startTime ?? ''),
+        endTime: String(payload.endTime ?? ''),
+        guestCount: Number(payload.guestCount ?? resource.minGuests),
+        isStaff: false
+      });
+
+      if (!validation.valid) {
+        res.status(400).json({ ok: false, message: validation.error });
+        return;
+      }
+
       const reservation: Reservation = {
         id: `res-${randomUUID()}`,
         resourceId: resource_id,
         guestName: payload.guestName ?? 'Guest',
         email: payload.email ?? '',
         phone: payload.phone ?? '',
-        guestCount: payload.guestCount ?? resource.minGuests,
+        guestCount: Number(payload.guestCount ?? resource.minGuests),
         date: payload.date ?? '',
         startTime: payload.startTime ?? '',
         endTime: payload.endTime ?? '',
@@ -198,25 +218,12 @@ export const setupUserRoutes = (router: Router) => {
     }
   });
 
-  // Update a reservation
-  router.patch('/api/user/reserve/:resource_id/:reservation_id', async (req: Request<{ resource_id: string; reservation_id: string }>, res: Response, next: NextFunction) => {
-    try {
-      const { resource_id, reservation_id } = req.params;
-      const existing = await getReservation(reservation_id);
-      if (!existing || existing.resourceId !== resource_id) {
-        res.status(404).json({ ok: false, message: `Reservation ${reservation_id} not found` });
-        return;
-      }
-
-      const updated = await updateReservation(reservation_id, req.body ?? {});
-      if (updated) {
-        const resource = await getResource(updated.resourceId);
-        await sendReservationEmail('change', updated, { tableName: resource?.name ?? updated.resourceId });
-      }
-      res.json({ ok: true, updated });
-    } catch (error) {
-      next(error);
-    }
+  // Update a reservation: guest token holders can only view or cancel, not modify directly
+  router.patch('/api/user/reserve/:resource_id/:reservation_id', async (_req: Request<{ resource_id: string; reservation_id: string }>, res: Response) => {
+    res.status(403).json({
+      ok: false,
+      message: 'Rezervace nelze přímo upravovat, pouze zrušit. Pro jiný termín nebo stůl prosím vytvořte novou rezervaci.'
+    });
   });
 
   // Cancel a reservation

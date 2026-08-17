@@ -59,28 +59,6 @@ async function loadReservation() {
 
 document.getElementById('load-btn').addEventListener('click', loadReservation);
 
-document.getElementById('save-btn').addEventListener('click', async () => {
-  const resourceId = resourceInput.value.trim();
-  const reservationId = reservationInput.value.trim();
-  const payload = {
-    date: document.getElementById('edit-date').value,
-    startTime: document.getElementById('edit-start').value,
-    endTime: document.getElementById('edit-end').value,
-    guestCount: Number(document.getElementById('edit-guests').value)
-  };
-
-  try {
-    const { updated } = await apiRequest(`/api/user/reserve/${resourceId}/${reservationId}`, {
-      method: 'PATCH',
-      body: payload
-    });
-    renderReservation(updated);
-    showMessage(messageEl, 'Reservation updated.', 'success');
-  } catch (error) {
-    showMessage(messageEl, error.message, 'error');
-  }
-});
-
 document.getElementById('cancel-btn').addEventListener('click', async () => {
   const resourceId = resourceInput.value.trim();
   const reservationId = reservationInput.value.trim();

@@ -9,6 +9,7 @@ import {
   getReservation,
   getReservationsByIds,
   getResource,
+  getSettings,
   listReservations,
   listResources,
   updateReservation
@@ -17,6 +18,7 @@ import { updateStaffUser, findStaffById } from '../../data/staffRepository.js';
 import type { Reservation } from '../../data/mockData.js';
 import { isNonEmptyString, toSafeUser } from '../../utils/helpers.js';
 import { sendReservationEmail } from '../../services/email.js';
+import { validateReservationPayload } from '../../utils/validation.js';
 
 export const setupStaffRoutes = (router: Router) => {
   // Get current user
@@ -52,13 +54,38 @@ export const setupStaffRoutes = (router: Router) => {
   router.post('/api/staff/reservation', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
     try {
       const payload = req.body ?? {};
+      const resource = await getResource(payload.resourceId ?? '');
+      if (!resource) {
+        res.status(404).json({ ok: false, message: `Resource ${payload.resourceId} not found` });
+        return;
+      }
+
+      const settings = await getSettings();
+      const allReservations = await listReservations();
+
+      const validation = validateReservationPayload({
+        resource,
+        settings,
+        allReservations,
+        date: String(payload.date ?? ''),
+        startTime: String(payload.startTime ?? ''),
+        endTime: String(payload.endTime ?? ''),
+        guestCount: Number(payload.guestCount ?? resource.minGuests),
+        isStaff: true
+      });
+
+      if (!validation.valid) {
+        res.status(400).json({ ok: false, message: validation.error });
+        return;
+      }
+
       const reservation: Reservation = {
         id: `res-${randomUUID()}`,
         resourceId: payload.resourceId ?? '',
         guestName: payload.guestName ?? 'New Guest',
         email: payload.email ?? '',
         phone: payload.phone ?? '',
-        guestCount: payload.guestCount ?? 1,
+        guestCount: Number(payload.guestCount ?? resource.minGuests),
         date: payload.date ?? '',
         startTime: payload.startTime ?? '',
         endTime: payload.endTime ?? '',
@@ -69,8 +96,7 @@ export const setupStaffRoutes = (router: Router) => {
       const created = await createReservation(reservation);
       await addLog('reservation.created', req.staffUser!.id);
 
-      const resource = await getResource(created.resourceId);
-      await sendReservationEmail('confirmation', created, { tableName: resource?.name ?? created.resourceId });
+      await sendReservationEmail('confirmation', created, { tableName: resource.name });
 
       res.status(201).json({ ok: true, reservation: created });
     } catch (error) {
@@ -96,7 +122,50 @@ export const setupStaffRoutes = (router: Router) => {
   // Update a reservation
   router.patch('/api/staff/reservation/:reservation_id', requireAuth, async (req: Request<{ reservation_id: string }>, res: Response, next: NextFunction) => {
     try {
-      const updated = await updateReservation(req.params.reservation_id, req.body ?? {});
+      const existing = await getReservation(req.params.reservation_id);
+      if (!existing) {
+        res.status(404).json({ ok: false, message: `Reservation ${req.params.reservation_id} not found` });
+        return;
+      }
+
+      const payload = req.body ?? {};
+      const needsValidation =
+        payload.date !== undefined ||
+        payload.startTime !== undefined ||
+        payload.endTime !== undefined ||
+        payload.guestCount !== undefined ||
+        payload.resourceId !== undefined;
+
+      if (needsValidation && payload.status !== 'cancelled') {
+        const targetResourceId = payload.resourceId ?? existing.resourceId;
+        const resource = await getResource(targetResourceId);
+        if (!resource) {
+          res.status(404).json({ ok: false, message: `Resource ${targetResourceId} not found` });
+          return;
+        }
+
+        const settings = await getSettings();
+        const allReservations = await listReservations();
+
+        const validation = validateReservationPayload({
+          resource,
+          settings,
+          allReservations,
+          date: String(payload.date ?? existing.date),
+          startTime: String(payload.startTime ?? existing.startTime),
+          endTime: String(payload.endTime ?? existing.endTime),
+          guestCount: Number(payload.guestCount ?? existing.guestCount),
+          existingReservationId: existing.id,
+          isStaff: true
+        });
+
+        if (!validation.valid) {
+          res.status(400).json({ ok: false, message: validation.error });
+          return;
+        }
+      }
+
+      const updated = await updateReservation(req.params.reservation_id, payload);
       if (!updated) {
         res.status(404).json({ ok: false, message: `Reservation ${req.params.reservation_id} not found` });
         return;
